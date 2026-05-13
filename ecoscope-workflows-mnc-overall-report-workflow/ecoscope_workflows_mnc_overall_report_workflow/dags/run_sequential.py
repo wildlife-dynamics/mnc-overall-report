@@ -1597,7 +1597,7 @@ def main(params: Params):
             df=remove_airstrip_op_brackets,
             columns=["camp_lodge"],
             replacement="Other",
-            strip_whitespace=True,
+            strip_whitespace=False,
             missing="ignore",
             **(params_dict.get("replace_airstrip_op_nulls") or {}),
         )
@@ -2696,7 +2696,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_mobile_boma_png") or {}),
@@ -3013,7 +3013,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_livestock_png") or {}),
@@ -3069,7 +3069,7 @@ def main(params: Params):
             df=map_livestock_summary,
             columns=["suspected_predator", "livestock_species"],
             replacement="Unknown",
-            strip_whitespace=True,
+            strip_whitespace=False,
             missing="ignore",
             **(params_dict.get("replace_livestock_nulls") or {}),
         )
@@ -3291,7 +3291,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_illegal_png") or {}),
@@ -4083,7 +4083,7 @@ def main(params: Params):
             df=map_elephant_sighting,
             columns=["herd_composition"],
             replacement="Unspecified",
-            strip_whitespace=True,
+            strip_whitespace=False,
             missing="ignore",
             **(params_dict.get("replace_elephant_unspecified") or {}),
         )
@@ -4228,7 +4228,7 @@ def main(params: Params):
             df=map_ele_column_values,
             columns=["herd_composition"],
             replacement="Unspecified",
-            strip_whitespace=True,
+            strip_whitespace=False,
             missing="ignore",
             **(params_dict.get("replace_elephant_herds") or {}),
         )
@@ -4378,7 +4378,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_elephant_png") or {}),
@@ -4703,7 +4703,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_ele_herd_png") or {}),
@@ -4759,7 +4759,7 @@ def main(params: Params):
             df=map_buffalo_sighting,
             columns=["herd_composition"],
             replacement="Unspecified",
-            strip_whitespace=True,
+            strip_whitespace=False,
             missing="ignore",
             **(params_dict.get("replace_buffalo_unspecified") or {}),
         )
@@ -5031,7 +5031,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_buffalo_png") or {}),
@@ -5256,7 +5256,7 @@ def main(params: Params):
                 "stroked": True,
             },
             legend={
-                "title": "Group Sizes",
+                "title": "Buffalo Group Sizes",
                 "label_column": "herd_sizebins_sort",
                 "color_column": "colors",
                 "sort": "ascending",
@@ -5356,7 +5356,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_buff_herd_png") or {}),
@@ -5557,7 +5557,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_rhino_png") or {}),
@@ -5619,7 +5619,7 @@ def main(params: Params):
             df=map_lion_sighting,
             columns=["pride"],
             replacement="Unspecified",
-            strip_whitespace=True,
+            strip_whitespace=False,
             missing="ignore",
             **(params_dict.get("replace_lion_unspecified") or {}),
         )
@@ -5940,7 +5940,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_lion_png") or {}),
@@ -6001,7 +6001,7 @@ def main(params: Params):
             df=map_leopard_sighting,
             columns=["individuals_present"],
             replacement="Unspecified",
-            strip_whitespace=True,
+            strip_whitespace=False,
             missing="ignore",
             **(params_dict.get("replace_leopard_unspecified") or {}),
         )
@@ -6322,7 +6322,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_leopard_png") or {}),
@@ -6383,7 +6383,7 @@ def main(params: Params):
             df=map_cheetah_sighting,
             columns=["individuals_present"],
             replacement="Unspecified",
-            strip_whitespace=True,
+            strip_whitespace=False,
             missing="ignore",
             **(params_dict.get("replace_cheetah_unspecified") or {}),
         )
@@ -6704,7 +6704,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_cheetah_png") or {}),
@@ -6861,7 +6861,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_giraffe_png") or {}),
@@ -7018,7 +7018,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_hartebeest_png") or {}),
@@ -7397,7 +7397,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_wildlife_png") or {}),
@@ -7861,7 +7861,7 @@ def main(params: Params):
             df=filter_null_patrols,
             columns=["transport_type"],
             replacement="unspecified",
-            strip_whitespace=True,
+            strip_whitespace=False,
             missing="ignore",
             **(params_dict.get("replace_transport_unspecified") or {}),
         )
@@ -8680,7 +8680,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_foot_png") or {}),
@@ -8974,7 +8974,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_vehicle_png") or {}),
@@ -9268,7 +9268,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_motor_png") or {}),
@@ -9408,7 +9408,7 @@ def main(params: Params):
             df=ranger_patrol_metrics,
             columns=["participants"],
             replacement="Unspecified",
-            strip_whitespace=True,
+            strip_whitespace=False,
             missing="ignore",
             **(params_dict.get("replace_ranger_nulls") or {}),
         )
@@ -9718,7 +9718,7 @@ def main(params: Params):
             config={
                 "full_page": False,
                 "device_scale_factor": 2.0,
-                "wait_for_timeout": 100,
+                "wait_for_timeout": 40000,
                 "max_concurrent_pages": 1,
             },
             **(params_dict.get("convert_grid_png") or {}),

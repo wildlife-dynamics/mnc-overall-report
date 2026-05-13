@@ -2331,7 +2331,7 @@ replace_airstrip_op_nulls = (
         df=remove_airstrip_op_brackets,
         columns=["camp_lodge"],
         replacement="Other",
-        strip_whitespace=True,
+        strip_whitespace=False,
         missing="ignore",
         **replace_airstrip_op_nulls_params,
     )
@@ -3996,7 +3996,7 @@ convert_mobile_boma_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_mobile_boma_png_params,
@@ -4461,7 +4461,7 @@ convert_livestock_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_livestock_png_params,
@@ -4541,7 +4541,7 @@ replace_livestock_nulls = (
         df=map_livestock_summary,
         columns=["suspected_predator", "livestock_species"],
         replacement="Unknown",
-        strip_whitespace=True,
+        strip_whitespace=False,
         missing="ignore",
         **replace_livestock_nulls_params,
     )
@@ -4875,7 +4875,7 @@ convert_illegal_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_illegal_png_params,
@@ -6089,7 +6089,7 @@ replace_elephant_unspecified = (
         df=map_elephant_sighting,
         columns=["herd_composition"],
         replacement="Unspecified",
-        strip_whitespace=True,
+        strip_whitespace=False,
         missing="ignore",
         **replace_elephant_unspecified_params,
     )
@@ -6302,7 +6302,7 @@ replace_elephant_herds = (
         df=map_ele_column_values,
         columns=["herd_composition"],
         replacement="Unspecified",
-        strip_whitespace=True,
+        strip_whitespace=False,
         missing="ignore",
         **replace_elephant_herds_params,
     )
@@ -6528,7 +6528,7 @@ convert_elephant_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_elephant_png_params,
@@ -7011,7 +7011,7 @@ convert_ele_herd_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_ele_herd_png_params,
@@ -7091,7 +7091,7 @@ replace_buffalo_unspecified = (
         df=map_buffalo_sighting,
         columns=["herd_composition"],
         replacement="Unspecified",
-        strip_whitespace=True,
+        strip_whitespace=False,
         missing="ignore",
         **replace_buffalo_unspecified_params,
     )
@@ -7495,7 +7495,7 @@ convert_buffalo_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_buffalo_png_params,
@@ -7826,7 +7826,7 @@ generate_buff_herd_layers = (
             "stroked": True,
         },
         legend={
-            "title": "Group Sizes",
+            "title": "Buffalo Group Sizes",
             "label_column": "herd_sizebins_sort",
             "color_column": "colors",
             "sort": "ascending",
@@ -7978,7 +7978,7 @@ convert_buff_herd_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_buff_herd_png_params,
@@ -8275,7 +8275,7 @@ convert_rhino_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_rhino_png_params,
@@ -8361,7 +8361,7 @@ replace_lion_unspecified = (
         df=map_lion_sighting,
         columns=["pride"],
         replacement="Unspecified",
-        strip_whitespace=True,
+        strip_whitespace=False,
         missing="ignore",
         **replace_lion_unspecified_params,
     )
@@ -8834,7 +8834,7 @@ convert_lion_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_lion_png_params,
@@ -8919,7 +8919,7 @@ replace_leopard_unspecified = (
         df=map_leopard_sighting,
         columns=["individuals_present"],
         replacement="Unspecified",
-        strip_whitespace=True,
+        strip_whitespace=False,
         missing="ignore",
         **replace_leopard_unspecified_params,
     )
@@ -9392,7 +9392,7 @@ convert_leopard_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_leopard_png_params,
@@ -9477,7 +9477,7 @@ replace_cheetah_unspecified = (
         df=map_cheetah_sighting,
         columns=["individuals_present"],
         replacement="Unspecified",
-        strip_whitespace=True,
+        strip_whitespace=False,
         missing="ignore",
         **replace_cheetah_unspecified_params,
     )
@@ -9950,7 +9950,7 @@ convert_cheetah_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_cheetah_png_params,
@@ -10183,7 +10183,7 @@ convert_giraffe_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_giraffe_png_params,
@@ -10416,7 +10416,7 @@ convert_hartebeest_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_hartebeest_png_params,
@@ -10975,7 +10975,7 @@ convert_wildlife_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_wildlife_png_params,
@@ -11649,7 +11649,7 @@ replace_transport_unspecified = (
         df=filter_null_patrols,
         columns=["transport_type"],
         replacement="unspecified",
-        strip_whitespace=True,
+        strip_whitespace=False,
         missing="ignore",
         **replace_transport_unspecified_params,
     )
@@ -12846,7 +12846,7 @@ convert_foot_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_foot_png_params,
@@ -13276,7 +13276,7 @@ convert_vehicle_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_vehicle_png_params,
@@ -13706,7 +13706,7 @@ convert_motor_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_motor_png_params,
@@ -13906,7 +13906,7 @@ replace_ranger_nulls = (
         df=ranger_patrol_metrics,
         columns=["participants"],
         replacement="Unspecified",
-        strip_whitespace=True,
+        strip_whitespace=False,
         missing="ignore",
         **replace_ranger_nulls_params,
     )
@@ -14376,7 +14376,7 @@ convert_grid_png = (
         config={
             "full_page": False,
             "device_scale_factor": 2.0,
-            "wait_for_timeout": 100,
+            "wait_for_timeout": 40000,
             "max_concurrent_pages": 1,
         },
         **convert_grid_png_params,

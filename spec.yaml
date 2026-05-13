@@ -1011,7 +1011,7 @@ workflow:
       columns: 
         - camp_lodge
       replacement: Other 
-      strip_whitespace: true 
+      strip_whitespace: false
       missing: ignore
 
   - name: Convert columns to integer 
@@ -1740,7 +1740,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
     
   - name: Map cattle count columns 
@@ -1945,7 +1945,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
 
   - name: Map livestock predation for summary table 
@@ -1984,7 +1984,7 @@ workflow:
         - suspected_predator
         - livestock_species
       replacement: Unknown 
-      strip_whitespace: true 
+      strip_whitespace: false
       missing: ignore
   
   - name: Map others with Unknown 
@@ -2133,7 +2133,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
   
   # 4 -- Wildlife report 
@@ -2627,7 +2627,7 @@ workflow:
       df: ${{ workflow.map_elephant_sighting.return }}
       columns: ["herd_composition"]
       replacement: "Unspecified"
-      strip_whitespace: true 
+      strip_whitespace: false
       missing: ignore
   
   - name: Convert elephant values to integer 
@@ -2719,7 +2719,7 @@ workflow:
       columns: 
         - herd_composition 
       replacement: Unspecified 
-      strip_whitespace: true 
+      strip_whitespace: false 
       missing: ignore 
 
   - name: Apply Colormap to elephant events 
@@ -2814,7 +2814,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
 
   # this needs to be fixed
@@ -3020,7 +3020,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
 
   # buffalo
@@ -3058,7 +3058,7 @@ workflow:
       df: ${{ workflow.map_buffalo_sighting.return }}
       columns: ["herd_composition"]
       replacement: "Unspecified"
-      strip_whitespace: true 
+      strip_whitespace: false
       missing: ignore
   
   - name: Convert buffalo values to integer 
@@ -3230,7 +3230,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
 
 # Look into this and fix this
@@ -3373,7 +3373,7 @@ workflow:
         opacity: 0.55
         stroked: true
       legend:
-        title: Group Sizes
+        title: Buffalo Group Sizes
         label_column: herd_sizebins_sort
         color_column: colors
         sort: ascending
@@ -3436,7 +3436,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
 
   # Rhino sighting 
@@ -3566,7 +3566,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
 
   # Lion sighting 
@@ -3610,7 +3610,7 @@ workflow:
       df: ${{ workflow.map_lion_sighting.return }}
       columns: ["pride"]
       replacement: "Unspecified"
-      strip_whitespace: true 
+      strip_whitespace: false
       missing: ignore
   
   - name: Convert lion values to integer 
@@ -3811,7 +3811,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
 
   # Leopard sighting
@@ -3854,7 +3854,7 @@ workflow:
       df: ${{ workflow.map_leopard_sighting.return }}
       columns: ["individuals_present"]
       replacement: "Unspecified"
-      strip_whitespace: true 
+      strip_whitespace: false
       missing: ignore
   
   - name: Convert leopard values to integer 
@@ -4055,7 +4055,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
 
   # cheetah sightings
@@ -4098,7 +4098,7 @@ workflow:
       df: ${{ workflow.map_cheetah_sighting.return }}
       columns: ["individuals_present"]
       replacement: "Unspecified"
-      strip_whitespace: true 
+      strip_whitespace: false
       missing: ignore
   
   - name: Convert cheetah values to integer 
@@ -4299,7 +4299,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
 
   # giraffe sightings
@@ -4403,7 +4403,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
 
   # hartebeest sightings 
@@ -4507,7 +4507,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
 
   - name: Normalize wildlife events 
@@ -4746,7 +4746,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
         
   # 5 -- Patrol report 
@@ -5038,7 +5038,7 @@ workflow:
       columns: 
         - transport_type 
       replacement: unspecified 
-      strip_whitespace: true 
+      strip_whitespace: false
       missing: ignore
 
   - name: Explode columns on patrols 
@@ -5584,7 +5584,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
 
   # ---- VEHICLE PATROLS ----
@@ -5775,7 +5775,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
 
   # ---- MOTORBIKE PATROLS ----
@@ -5966,7 +5966,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
         
   # ---- COMBINED TRAJECTORIES ----
@@ -6064,7 +6064,7 @@ workflow:
       columns: 
         - participants
       replacement: Unspecified 
-      strip_whitespace: true 
+      strip_whitespace: false
       missing: ignore
 
   - name: Add totals row to overall patrol metrics
@@ -6260,7 +6260,7 @@ workflow:
       config:
         full_page: false
         device_scale_factor: 2.0
-        wait_for_timeout: 100 #40000
+        wait_for_timeout: 40000
         max_concurrent_pages: 1
 
   - name: Download MNC Template and persist

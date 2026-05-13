@@ -2312,7 +2312,7 @@ def main(params: Params):
                     "camp_lodge",
                 ],
                 "replacement": "Other",
-                "strip_whitespace": True,
+                "strip_whitespace": False,
                 "missing": "ignore",
             }
             | (params_dict.get("replace_airstrip_op_nulls") or {}),
@@ -3550,7 +3550,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -3870,7 +3870,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -3928,7 +3928,7 @@ def main(params: Params):
                     "livestock_species",
                 ],
                 "replacement": "Unknown",
-                "strip_whitespace": True,
+                "strip_whitespace": False,
                 "missing": "ignore",
             }
             | (params_dict.get("replace_livestock_nulls") or {}),
@@ -4172,7 +4172,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -4965,7 +4965,7 @@ def main(params: Params):
                     "herd_composition",
                 ],
                 "replacement": "Unspecified",
-                "strip_whitespace": True,
+                "strip_whitespace": False,
                 "missing": "ignore",
             }
             | (params_dict.get("replace_elephant_unspecified") or {}),
@@ -5124,7 +5124,7 @@ def main(params: Params):
                     "herd_composition",
                 ],
                 "replacement": "Unspecified",
-                "strip_whitespace": True,
+                "strip_whitespace": False,
                 "missing": "ignore",
             }
             | (params_dict.get("replace_elephant_herds") or {}),
@@ -5276,7 +5276,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -5611,7 +5611,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -5668,7 +5668,7 @@ def main(params: Params):
                     "herd_composition",
                 ],
                 "replacement": "Unspecified",
-                "strip_whitespace": True,
+                "strip_whitespace": False,
                 "missing": "ignore",
             }
             | (params_dict.get("replace_buffalo_unspecified") or {}),
@@ -5950,7 +5950,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -6183,7 +6183,7 @@ def main(params: Params):
                     "stroked": True,
                 },
                 "legend": {
-                    "title": "Group Sizes",
+                    "title": "Buffalo Group Sizes",
                     "label_column": "herd_sizebins_sort",
                     "color_column": "colors",
                     "sort": "ascending",
@@ -6285,7 +6285,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -6505,7 +6505,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -6568,7 +6568,7 @@ def main(params: Params):
                     "pride",
                 ],
                 "replacement": "Unspecified",
-                "strip_whitespace": True,
+                "strip_whitespace": False,
                 "missing": "ignore",
             }
             | (params_dict.get("replace_lion_unspecified") or {}),
@@ -6904,7 +6904,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -6966,7 +6966,7 @@ def main(params: Params):
                     "individuals_present",
                 ],
                 "replacement": "Unspecified",
-                "strip_whitespace": True,
+                "strip_whitespace": False,
                 "missing": "ignore",
             }
             | (params_dict.get("replace_leopard_unspecified") or {}),
@@ -7302,7 +7302,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -7364,7 +7364,7 @@ def main(params: Params):
                     "individuals_present",
                 ],
                 "replacement": "Unspecified",
-                "strip_whitespace": True,
+                "strip_whitespace": False,
                 "missing": "ignore",
             }
             | (params_dict.get("replace_cheetah_unspecified") or {}),
@@ -7700,7 +7700,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -7870,7 +7870,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -8040,7 +8040,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -8425,7 +8425,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -8906,7 +8906,7 @@ def main(params: Params):
                     "transport_type",
                 ],
                 "replacement": "unspecified",
-                "strip_whitespace": True,
+                "strip_whitespace": False,
                 "missing": "ignore",
             }
             | (params_dict.get("replace_transport_unspecified") or {}),
@@ -9766,7 +9766,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -10076,7 +10076,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -10386,7 +10386,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
@@ -10537,7 +10537,7 @@ def main(params: Params):
                     "participants",
                 ],
                 "replacement": "Unspecified",
-                "strip_whitespace": True,
+                "strip_whitespace": False,
                 "missing": "ignore",
             }
             | (params_dict.get("replace_ranger_nulls") or {}),
@@ -10861,7 +10861,7 @@ def main(params: Params):
                 "config": {
                     "full_page": False,
                     "device_scale_factor": 2.0,
-                    "wait_for_timeout": 100,
+                    "wait_for_timeout": 40000,
                     "max_concurrent_pages": 1,
                 },
             }
