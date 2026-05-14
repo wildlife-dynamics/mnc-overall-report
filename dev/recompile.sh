@@ -185,35 +185,46 @@ echo "Copied resource-sampler.py into ${GENERATED_DIR}/"
 cp "$(dirname "$0")/thread-executor.py" "${GENERATED_DIR}/thread-executor.py"
 echo "Copied thread-executor.py into ${GENERATED_DIR}/"
 
-# Generate run-with-traces.sh referencing co-located scripts via
-# PIXI_PROJECT_ROOT (set by pixi to the workflow package directory at runtime).
-wrapper="${GENERATED_DIR}/run-with-traces.sh"
+# Generate run-with-traces.py using sys.executable so pixi's own Python is always
+# used for subprocesses — bash scripts can't guarantee python3 resolves to the
+# pixi Python on all platforms (e.g. Windows where WSL python3 != pixi python).
+wrapper="${GENERATED_DIR}/run-with-traces.py"
 cat > "$wrapper" << WRAPPER_EOF
-#!/bin/bash
-SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
-rp="\${ECOSCOPE_WORKFLOWS_RESULTS#file://}"
-if [ -n "\$rp" ]; then
-    python3 "\$SCRIPT_DIR/resource-sampler.py" "\$rp" python3 "\$SCRIPT_DIR/thread-executor.py" "ecoscope_workflows_${WORKFLOW_UNDERSCORE}_workflow" "\$@"
-else
-    python3 "\$SCRIPT_DIR/thread-executor.py" "ecoscope_workflows_${WORKFLOW_UNDERSCORE}_workflow" "\$@"
-fi
-exit \$?
+#!/usr/bin/env python3
+import os, subprocess, sys
+from pathlib import Path
+
+script_dir = Path(__file__).parent
+workflow_module = "ecoscope_workflows_${WORKFLOW_UNDERSCORE}_workflow"
+results_env = os.environ.get("ECOSCOPE_WORKFLOWS_RESULTS", "")
+rp = results_env[len("file://"):] if results_env.startswith("file://") else results_env
+
+cmd = [sys.executable, str(script_dir / "thread-executor.py"), workflow_module] + sys.argv[1:]
+if rp:
+    cmd = [sys.executable, str(script_dir / "resource-sampler.py"), rp] + cmd
+sys.exit(subprocess.call(cmd))
 WRAPPER_EOF
-chmod +x "$wrapper"
 echo "Generated ${wrapper}"
 
-# Patch the pixi.toml task to call run-with-traces.sh instead of the CLI directly.
+# Patch the pixi.toml task to call run-with-traces.py instead of the CLI directly.
+# Handles both a fresh compile (original CLI entry) and a prior recompile (bash script).
 pixi_toml="${GENERATED_DIR}/pixi.toml"
 if [ -f "$pixi_toml" ]; then
   python3 - "$pixi_toml" "$WORKFLOW_UNDERSCORE" "$WORKFLOW_ID" << 'PYEOF'
 import sys
 path, workflow, workflow_hyphen = sys.argv[1], sys.argv[2], sys.argv[3]
-old = f'ecoscope-workflows-{workflow_hyphen}-workflow = "python -m ecoscope_workflows_{workflow}_workflow.cli"'
-new = f'ecoscope-workflows-{workflow_hyphen}-workflow = "bash run-with-traces.sh"'
+new = f'ecoscope-workflows-{workflow_hyphen}-workflow = "python run-with-traces.py"'
+old_cli  = f'ecoscope-workflows-{workflow_hyphen}-workflow = "python -m ecoscope_workflows_{workflow}_workflow.cli"'
+old_bash = f'ecoscope-workflows-{workflow_hyphen}-workflow = "bash run-with-traces.sh"'
 content = open(path).read()
-if old in content:
-    open(path, "w").write(content.replace(old, new))
-    print(f"Patched {path}: task now calls run-with-traces.sh")
+if new in content:
+    print(f"{path}: already using run-with-traces.py, skipping")
+elif old_cli in content:
+    open(path, "w").write(content.replace(old_cli, new))
+    print(f"Patched {path}: task now calls run-with-traces.py")
+elif old_bash in content:
+    open(path, "w").write(content.replace(old_bash, new))
+    print(f"Patched {path}: task updated from bash to run-with-traces.py")
 else:
     print(f"Warning: expected task line not found in {path}, skipping pixi.toml patch")
 PYEOF
