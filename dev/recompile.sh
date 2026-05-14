@@ -190,11 +190,12 @@ echo "Copied thread-executor.py into ${GENERATED_DIR}/"
 wrapper="${GENERATED_DIR}/run-with-traces.sh"
 cat > "$wrapper" << WRAPPER_EOF
 #!/bin/bash
+SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
 rp="\${ECOSCOPE_WORKFLOWS_RESULTS#file://}"
 if [ -n "\$rp" ]; then
-    python3 "\$PIXI_PROJECT_ROOT/resource-sampler.py" "\$rp" python3 "\$PIXI_PROJECT_ROOT/thread-executor.py" "ecoscope_workflows_${WORKFLOW_UNDERSCORE}_workflow" "\$@"
+    python3 "\$SCRIPT_DIR/resource-sampler.py" "\$rp" python3 "\$SCRIPT_DIR/thread-executor.py" "ecoscope_workflows_${WORKFLOW_UNDERSCORE}_workflow" "\$@"
 else
-    python3 "\$PIXI_PROJECT_ROOT/thread-executor.py" "ecoscope_workflows_${WORKFLOW_UNDERSCORE}_workflow" "\$@"
+    python3 "\$SCRIPT_DIR/thread-executor.py" "ecoscope_workflows_${WORKFLOW_UNDERSCORE}_workflow" "\$@"
 fi
 exit \$?
 WRAPPER_EOF
