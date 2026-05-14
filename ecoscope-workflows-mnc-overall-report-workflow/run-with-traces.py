@@ -11,7 +11,7 @@ def _normalize_results_env(uri):
         return uri
     path = uri[7:]
     if len(path) > 2 and path[0] == "/" and path[2] == ":":
-        return "file://" + path[1:].replace("\", "/")
+        return "file://" + path[1:]
     return uri
 
 
