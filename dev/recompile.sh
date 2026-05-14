@@ -192,8 +192,7 @@ cat > "$wrapper" << WRAPPER_EOF
 #!/bin/bash
 rp="\${ECOSCOPE_WORKFLOWS_RESULTS#file://}"
 if [ -n "\$rp" ]; then
-    python3 "\$PIXI_PROJECT_ROOT/resource-sampler.py" "\$rp" \
-        python3 "\$PIXI_PROJECT_ROOT/thread-executor.py" "ecoscope_workflows_${WORKFLOW_UNDERSCORE}_workflow" "\$@"
+    python3 "\$PIXI_PROJECT_ROOT/resource-sampler.py" "\$rp" python3 "\$PIXI_PROJECT_ROOT/thread-executor.py" "ecoscope_workflows_${WORKFLOW_UNDERSCORE}_workflow" "\$@"
 else
     python3 "\$PIXI_PROJECT_ROOT/thread-executor.py" "ecoscope_workflows_${WORKFLOW_UNDERSCORE}_workflow" "\$@"
 fi
