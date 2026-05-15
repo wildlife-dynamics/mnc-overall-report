@@ -176,6 +176,53 @@ for f in files:
         print(f"Warning: {f.name}: expected dependency line not found, skipping")
 PYEOF
 
+# Make mnc_events_dashboard the final task so dispatch.py always receives a
+# BaseModel result. Dynamically finds all other terminal nodes (nodes nothing
+# depends on) and adds them as ordering dependencies of mnc_events_dashboard.
+python3 - "$dags_dir" << 'PYEOF'
+import re, sys
+from pathlib import Path
+
+dags = Path(sys.argv[1])
+files = [dags / "run_async.py", dags / "run_async_mock_io.py"]
+
+for f in files:
+    if not f.exists():
+        continue
+    text = f.read_text()
+
+    m = re.search(r'dependencies = \{(.+?)\n    \}', text, re.DOTALL)
+    if not m:
+        print(f"Warning: {f.name}: could not find dependencies dict, skipping")
+        continue
+    block = m.group(1)
+    dep_keys = set(re.findall(r'^\s+"([^"]+)":\s+\[', block, re.MULTILINE))
+    dep_values = set(re.findall(r'"([^"]+)"', ' '.join(re.findall(r'(?<=\[)[^\]]+', block))))
+    terminals = sorted((dep_keys - dep_values) - {"mnc_events_dashboard"})
+
+    if not terminals:
+        print(f"{f.name}: no other terminal nodes found, skipping")
+        continue
+
+    cur_line = re.search(r'^\s+"mnc_events_dashboard":\s+\[.+?\],', text, re.MULTILINE)
+    if not cur_line:
+        print(f"Warning: {f.name}: mnc_events_dashboard dep line not found, skipping")
+        continue
+
+    existing = re.findall(r'"([^"]+)"', cur_line.group(0).split(':')[1])
+    to_add = [t for t in terminals if t not in existing]
+    if not to_add:
+        print(f"{f.name}: mnc_events_dashboard already depends on all terminals, skipping")
+        continue
+
+    all_deps = existing + to_add
+    deps_str = ", ".join(f'"{d}"' for d in all_deps)
+    new_line = f'        "mnc_events_dashboard": [{deps_str}],'
+    text = text[:cur_line.start()] + new_line + text[cur_line.end():]
+    f.write_text(text)
+    print(f"{f.name}: mnc_events_dashboard now depends on all {len(all_deps)} terminal tasks")
+PYEOF
+
 # Copy dev scripts into the workflow package directory so they travel with
 # the workflow when the desktop app deploys it to its own template location.
 cp "$(dirname "$0")/parse-traces.py" "${GENERATED_DIR}/parse-traces.py"

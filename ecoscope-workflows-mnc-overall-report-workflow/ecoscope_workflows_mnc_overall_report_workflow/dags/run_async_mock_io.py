@@ -839,7 +839,7 @@ def main(params: Params):
             "persist_total_df",
             "persist_patrol_df",
         ],
-        "mnc_events_dashboard": ["workflow_details", "time_range", "groupers", "generate_report"],
+        "mnc_events_dashboard": ["workflow_details", "time_range", "groupers", "generate_report", "drop_airline_complaint_prefix", "filter_unspecified_patrols", "persist_boma_summary", "persist_buff_df", "persist_cattle_count", "persist_cheetah_df", "persist_cheetahs_df", "persist_ele_df", "persist_foot_df", "persist_leopard_df", "persist_leopards_df", "persist_lion_df", "persist_lions_df", "persist_livestock_summary", "persist_motor_df", "persist_occupancy_df", "persist_predation_summary", "persist_relocs", "persist_rhino_df", "persist_summary_event_type", "persist_trajectories_data", "persist_vehicle_df", "persist_weather_summary", "persist_wildlife_csv", "persist_wildlife_df", "wildlife_events_df"],
     }
 
     nodes = {
