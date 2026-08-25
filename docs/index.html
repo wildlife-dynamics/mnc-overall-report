@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MNC Overall Report — Documentation</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
+      color: #2d2d2d;
+      background: #f7f8fa;
+    }
+
+    /* ── Layout ── */
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 0 56px 72px;
+      min-height: 100vh;
+    }
+
+    /* ── Colour tokens ── */
+    :root {
+      --green-dark: #115631;
+      --green-mid:  #2d6a4f;
+      --amber:      #e7a553;
+      --slate:      #3d3d3d;
+      --light-grey: #f5f5f5;
+      --mid-grey:   #cccccc;
+      --border:     #e2e4e8;
+    }
+
+    /* ── Top nav ── */
+    .topnav {
+      background: var(--green-dark);
+      color: #fff;
+    }
+    .topnav-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 14px 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .topnav-brand {
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+    }
+    .topnav-links { display: flex; gap: 18px; flex-wrap: wrap; }
+    .topnav-links a {
+      color: #d9ebe0;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .topnav-links a:hover { color: #fff; text-decoration: underline; }
+
+    /* ── Header / cover ── */
+    .cover {
+      border-left: 5px solid var(--green-dark);
+      padding: 20px 24px;
+      margin: 40px 0;
+      background: #f0f7f2;
+      border-radius: 0 6px 6px 0;
+    }
+    .cover h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin-bottom: 6px;
+    }
+    .cover .subtitle {
+      font-size: 0.95rem;
+      color: #555;
+    }
+    .badge {
+      display: inline-block;
+      background: var(--green-dark);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 10px;
+      margin-top: 10px;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Resource cards ── */
+    .resource-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 24px 0 8px;
+    }
+    @media (max-width: 600px) {
+      .resource-grid { grid-template-columns: 1fr; }
+    }
+    .resource-card {
+      display: block;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 18px;
+      text-decoration: none;
+      color: inherit;
+      transition: box-shadow 0.15s, border-color 0.15s;
+    }
+    .resource-card:hover {
+      border-color: var(--green-mid);
+      box-shadow: 0 2px 10px rgba(17,86,49,0.12);
+    }
+    .resource-card .icon { font-size: 1.3rem; }
+    .resource-card .title {
+      font-weight: 700;
+      color: var(--green-dark);
+      margin: 6px 0 3px;
+      font-size: 0.98rem;
+    }
+    .resource-card .desc { font-size: 0.82rem; color: #666; }
+
+    /* ── Headings ── */
+    h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin: 40px 0 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--green-dark);
+    }
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--green-mid);
+      margin: 28px 0 8px;
+    }
+    h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--slate);
+      margin: 18px 0 6px;
+    }
+
+    /* ── Body text ── */
+    p { margin-bottom: 12px; }
+
+    hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+
+    /* ── Config sections ── */
+    .config-step {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 36px;
+    }
+    .config-step-header {
+      background: var(--green-dark);
+      color: #fff;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .config-step-header .num {
+      background: rgba(255,255,255,0.25);
+      border-radius: 50%;
+      width: 26px;
+      height: 26px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .config-step-header h3 {
+      color: #fff;
+      margin: 0;
+      font-size: 1rem;
+    }
+    .config-step-body {
+      padding: 20px 24px;
+    }
+
+    /* ── Code / pre ── */
+    code {
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 0.85em;
+      background: var(--light-grey);
+      color: #c0392b;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    pre {
+      background: var(--light-grey);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 18px;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+    pre code { background: none; color: #2d2d2d; padding: 0; }
+
+    /* ── Tables ── */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin: 14px 0;
+    }
+    thead tr { background: var(--green-dark); color: #fff; }
+    thead th {
+      padding: 9px 12px;
+      text-align: left;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    tbody tr:nth-child(even) { background: var(--light-grey); }
+    tbody td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    /* ── Callouts ── */
+    .callout {
+      border-left: 4px solid var(--amber);
+      background: #fff8e1;
+      padding: 10px 16px;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.88rem;
+      color: #555;
+      margin: 14px 0;
+    }
+    .callout strong { color: #333; }
+
+    /* ── Bullet lists ── */
+    ul, ol { padding-left: 22px; margin-bottom: 12px; }
+    li { margin-bottom: 5px; }
+
+    /* ── Output files section ── */
+    .output-grid {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .output-item {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 16px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .output-icon {
+      font-size: 1.4rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .output-file { font-family: monospace; font-size: 0.82rem; color: var(--green-dark); font-weight: 600; }
+    .output-desc { font-size: 0.85rem; color: #555; margin-top: 2px; }
+
+    /* ── Run steps ── */
+    .run-steps { list-style: none; padding: 0; counter-reset: run-step; }
+    .run-steps li {
+      counter-increment: run-step;
+      display: flex;
+      gap: 14px;
+      margin-bottom: 12px;
+      align-items: flex-start;
+    }
+    .run-steps li::before {
+      content: counter(run-step);
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      background: var(--green-mid);
+      color: #fff;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 3px;
+    }
+
+    /* ── Branch pill grid ── */
+    .branch-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 14px 0;
+    }
+    @media (max-width: 700px) {
+      .branch-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .branch-pill {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 0.82rem;
+    }
+    .branch-pill .name { font-weight: 700; color: var(--green-dark); display: block; margin-bottom: 2px; }
+
+    footer {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 24px 56px 40px;
+      font-size: 0.8rem;
+      color: #888;
+    }
+    footer a { color: var(--green-mid); }
+  </style>
+</head>
+<body>
+
+  <div class="topnav">
+    <div class="topnav-inner">
+      <div class="topnav-brand">mnc-overall-report</div>
+      <div class="topnav-links">
+        <a href="#overview">Overview</a>
+        <a href="#configuration">Configuration</a>
+        <a href="#outputs">Outputs</a>
+        <a href="#dashboard">Dashboard</a>
+        <a href="assets/mnc_overall_report_technical_guide.pdf">Technical Guide</a>
+        <a href="https://github.com/wildlife-dynamics/mnc-overall-report">GitHub</a>
+      </div>
+    </div>
+  </div>
+
+<div class="page">
+
+  <!-- ── Cover ── -->
+  <div class="cover">
+    <h1>MNC Overall Report</h1>
+    <p class="subtitle">Weather, Logistics, Livestock, Wildlife &amp; Patrol Reporting — Consolidated Monthly EarthRanger Report</p>
+    <span class="badge">mnc-overall-report</span>
+  </div>
+
+  <p>
+    This site documents the MNC Overall Report Ecoscope workflow, which consolidates weather
+    station observations, logistics events, livestock events, wildlife sightings and incidents,
+    and patrol data from EarthRanger for a configured time window, and publishes the result as
+    CSV tables, interactive maps and charts, a results dashboard, and a populated Word report.
+  </p>
+
+  <div class="resource-grid">
+    <a class="resource-card" href="assets/mnc_overall_report_technical_guide.pdf">
+      <div class="icon">🛠️</div>
+      <div class="title">Technical Guide (PDF)</div>
+      <div class="desc">Full task-by-task breakdown of the compiled workflow spec, for engineers and reviewers.</div>
+    </a>
+    <a class="resource-card" href="assets/MNC_Overall_Report_User_Guide.pdf">
+      <div class="icon">📘</div>
+      <div class="title">User Guide (PDF)</div>
+      <div class="desc">Printable copy of this configuration guide, for offline reference.</div>
+    </a>
+  </div>
+
+  <hr />
+
+  <!-- ── Overview ── -->
+  <h2 id="overview">Overview</h2>
+
+  <p>The workflow delivers, for each run:</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>Output</th><th>Format</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Weather charts</td>
+        <td>CSV + HTML/PNG</td>
+        <td>7 daily line charts per station — precipitation, temperature, wind speed, wind gusts, soil temperature, relative humidity, atmospheric pressure</td>
+      </tr>
+      <tr>
+        <td>Logistics tables</td>
+        <td>CSV + HTML</td>
+        <td>Balloon landing summary, airstrip operations (pivoted by arrival/departure), airstrip maintenance log</td>
+      </tr>
+      <tr>
+        <td>Livestock reports</td>
+        <td>CSV + HTML/PNG</td>
+        <td>Mobile boma movement map &amp; summary, cattle count table, livestock predation map &amp; summary, illegal grazing map</td>
+      </tr>
+      <tr>
+        <td>Wildlife incidents</td>
+        <td>CSV + HTML/PNG</td>
+        <td>Incident map and summary tables (snares, fires, carcasses, injuries, veterinary treatments)</td>
+      </tr>
+      <tr>
+        <td>Wildlife sightings</td>
+        <td>CSV + HTML/PNG</td>
+        <td>Sightings map &amp; summary table for all 8 species; elephant and buffalo additionally get a herd-composition map, herd-size bubble map, and herd-size bar chart</td>
+      </tr>
+      <tr>
+        <td>Events overview</td>
+        <td>CSV + HTML/PNG</td>
+        <td>Total events recorded by date and by type, with a line chart</td>
+      </tr>
+      <tr>
+        <td>Patrol reports</td>
+        <td>CSV + GeoParquet + HTML/PNG</td>
+        <td>Foot, vehicle, motorbike, and overall patrol coverage maps; per-mode effort summaries; overall per-ranger effort; conservancy patrol occupancy</td>
+      </tr>
+      <tr>
+        <td>MNC Overall Report Dashboard</td>
+        <td>Dashboard</td>
+        <td>44 map, chart, and table widgets — one per branch output described above</td>
+      </tr>
+      <tr>
+        <td><code>overall_report.docx</code></td>
+        <td>Word document</td>
+        <td>All outputs assembled into a single document from a Dropbox-hosted template</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>Reporting branches</h3>
+  <div class="branch-grid">
+    <div class="branch-pill"><span class="name">Weather</span>7 line charts per station</div>
+    <div class="branch-pill"><span class="name">Logistics</span>balloon, airstrip ops, airstrip maintenance</div>
+    <div class="branch-pill"><span class="name">Livestock</span>boma, cattle, predation, illegal grazing</div>
+    <div class="branch-pill"><span class="name">Wildlife incidents</span>snare, fire, carcass, injury, veterinary treatment</div>
+    <div class="branch-pill"><span class="name">Elephant &amp; Buffalo</span>herd composition, herd size bins &amp; bubble map</div>
+    <div class="branch-pill"><span class="name">Lion, Leopard, Cheetah</span>sightings by pride / individuals present</div>
+    <div class="branch-pill"><span class="name">Giraffe, Hartebeest, Rhino</span>sightings map + daily count</div>
+    <div class="branch-pill"><span class="name">Events overview</span>all-events daily line chart</div>
+    <div class="branch-pill"><span class="name">Patrol</span>foot, vehicle, motorbike &amp; overall coverage</div>
+  </div>
+
+  <hr />
+
+  <!-- ── Prerequisites ── -->
+  <h2>Prerequisites</h2>
+
+  <p>Before running the workflow, ensure you have:</p>
+  <ul>
+    <li>
+      Access to an <strong>EarthRanger</strong> instance with the following recorded for the
+      analysis period:
+      <ul>
+        <li>Weather station observations under the <code>ER2ER - From GMMF</code> subject group</li>
+        <li>Logistics events: <code>balloon_landing</code>, <code>airstrip_operations</code>, <code>airstrip_maintenance</code></li>
+        <li>Livestock events: <code>mobile_boma_rep</code>, <code>cattle_count</code>, <code>livestock_predation_rep</code>, <code>illegal_grazing_rep</code></li>
+        <li>Wildlife incident events: <code>snare_rep</code>, <code>fire_rep</code>, <code>wildlife_injury_rep</code>, <code>wildlife_treatment_rep</code>, <code>wildlife_carcass_rep</code></li>
+        <li>Wildlife sighting events: <code>elephant_sighting_rep</code>, <code>buffalo_sighting_rep</code>, <code>rhino_sighting_rep</code>, <code>lion_sighting_rep</code>, <code>leopardsightingrep</code>, <code>cheetah_sighting_rep</code>, <code>giraffe_sighting</code>, <code>hartebeest_sighting</code></li>
+        <li><code>patrol_info</code> events and associated patrol observations</li>
+      </ul>
+    </li>
+    <li>Network access to <strong>Dropbox</strong>, so the workflow can download the MNC conservancy boundary, parcels, and Word report template files at runtime</li>
+  </ul>
+
+  <hr />
+
+  <!-- ── Configuration ── -->
+  <h2 id="configuration">Step-by-Step Configuration</h2>
+
+  <!-- Step 1 -->
+  <div class="config-step">
+    <div class="config-step-header">
+      <div class="num">1</div>
+      <h3>Add the Workflow Template</h3>
+    </div>
+    <div class="config-step-body">
+      <p>
+        In the Ecoscope app, navigate to the <strong>Workflow Templates</strong> tab and click
+        <strong>Add Workflow Template</strong> (top-right). In the <strong>Github Link</strong> field
+        that appears, paste the repository URL and click <strong>Add Template</strong>.
+      </p>
+      <pre><code>https://github.com/wildlife-dynamics/mnc-overall-report.git</code></pre>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="config-step">
+    <div class="config-step-header">
+      <div class="num">2</div>
+      <h3>Configure the EarthRanger Connection</h3>
+    </div>
+    <div class="config-step-body">
+      <p>
+        Navigate to <strong>Data Sources</strong> and click <strong>Connect</strong>. The
+        <strong>Connect Ecoscope to EarthRanger</strong> dialog opens. Fill in the form:
+      </p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Field</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Data Source Name</td><td>A label to identify this connection (e.g. <code>Mara North Conservancy</code>)</td></tr>
+          <tr><td>EarthRanger URL</td><td>Your instance URL (e.g. <code>your-site.pamdas.org</code>)</td></tr>
+          <tr><td>EarthRanger Username</td><td>Your EarthRanger username</td></tr>
+          <tr><td>EarthRanger Password</td><td>Your EarthRanger password</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <div class="callout">
+        <strong>Important:</strong> Credentials entered here are not validated during setup. Any authentication errors will only appear when the workflow runs.
+      </div>
+      <p>Click <strong>Connect</strong> to save the data source.</p>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="config-step">
+    <div class="config-step-header">
+      <div class="num">3</div>
+      <h3>Select the Workflow</h3>
+    </div>
+    <div class="config-step-body">
+      <p>
+        Go back to <strong>Workflow Templates</strong>. The newly added template appears as the
+        <strong>mnc-overall-report</strong> card (showing the source repository URL). Click the
+        card to open the workflow configuration form.
+      </p>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="config-step">
+    <div class="config-step-header">
+      <div class="num">4</div>
+      <h3>Configure Workflow Details, Time Range, and EarthRanger Connection</h3>
+    </div>
+    <div class="config-step-body">
+      <p>The configuration form is divided into three sections, each highlighted in the left-hand navigation panel.</p>
+
+      <h4>Set Workflow Details</h4>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Field</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Workflow Name</td><td>A short name to identify this run (required)</td></tr>
+          <tr><td>Workflow Description</td><td>Optional notes to differentiate this run from others (e.g. reporting month or site)</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h4>Time Range</h4>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Field</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Timezone</td><td>Select the local timezone (e.g. <code>Africa/Nairobi UTC+03:00</code>)</td></tr>
+          <tr><td>Since</td><td>Start date and time — all data from this point is fetched</td></tr>
+          <tr><td>Until</td><td>End date and time of the analysis window</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h4>Connect to EarthRanger</h4>
+      <p>
+        Select the EarthRanger data source configured in Step 2 from the <strong>Data Source</strong>
+        dropdown (e.g. <code>Mara North Conservancy</code>).
+      </p>
+
+      <p>Once all three sections are filled, click <strong>Submit</strong> to start the workflow.</p>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- ── Running ── -->
+  <h2>Running the Workflow</h2>
+
+  <p>Once submitted, the runner will:</p>
+
+  <ol class="run-steps">
+    <li>Download the MNC community conservancy boundary and parcels files from Dropbox; repair invalid geometries; derive the conservancy AOI (<code>grazing_zone == Conservancy</code>), the non-conservancy grazing zones (coloured individually), and the Mara North Conservancy extent (used to compute the shared map zoom/centre); build reusable conservancy, grazing-zone, and parcels map layers.</li>
+    <li>Fetch weather station observations from the <code>ER2ER - From GMMF</code> subject group; extract seven meteorological variables from each observation; compute daily per-station aggregates; draw one line chart per variable.</li>
+    <li>Fetch all events once; split off balloon landing, airstrip operations, and airstrip maintenance events; clean and summarise each into a table.</li>
+    <li>Split off mobile boma, cattle count, livestock predation, and illegal grazing events; generate maps and summary tables — livestock maps are the only ones that additionally show the grazing-zone layer.</li>
+    <li>Split off wildlife incident events (snares, fires, carcasses, injuries, veterinary treatments); generate an incident map and summary tables.</li>
+    <li>Split off each of the 8 wildlife species' sighting events; generate a sightings map and summary table for each; elephant and buffalo additionally get herd-composition classification, a herd-size bar chart, and a herd-size bubble map.</li>
+    <li>Summarise all events by date and by type (excluding distance-count and airstrip-operations event types); draw a total-events line chart.</li>
+    <li>Fetch <code>patrol_info</code> events and associated patrol observations; convert to relocations; split into Foot, Vehicle, and Motorbike branches and convert each to trajectories using mode-appropriate segment filters; build a coverage grid and map for each mode and for the combined (overall) dataset; compute per-mode and per-ranger effort summaries and conservancy patrol occupancy.</li>
+    <li>Download the Word report template from Dropbox and assemble <strong>overall_report.docx</strong> from the outputs above.</li>
+    <li>Assemble all 44 widgets into the <strong>MNC Overall Report dashboard</strong>.</li>
+    <li>Save all outputs to the directory specified by <code>ECOSCOPE_WORKFLOWS_RESULTS</code>.</li>
+  </ol>
+
+  <div class="callout">
+    <strong>Note:</strong> Every task is automatically skipped if its input data is empty or an upstream step was skipped, so a run with no events of a given type simply omits that branch's outputs rather than failing. Widget-creation steps are the exception — they always run so that a placeholder widget still appears on the dashboard even if the branch behind it was skipped.
+  </div>
+
+  <hr />
+
+  <!-- ── Output Files ── -->
+  <h2 id="outputs">Output Files</h2>
+
+  <p>All outputs are written to <code>$ECOSCOPE_WORKFLOWS_RESULTS/</code>.</p>
+
+  <h3>Weather</h3>
+  <div class="output-grid">
+    <div class="output-item">
+      <div class="output-icon">🌦️</div>
+      <div>
+        <div class="output-file">weather_summary_table.csv</div>
+        <div class="output-desc">Daily per-station summary of all 7 weather variables</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">📈</div>
+      <div>
+        <div class="output-file">precipitation / temperature / wind_speed / wind_gusts / soil_temperature / relative_humidity / atmospheric_pressure_readings_over_time.html / .png</div>
+        <div class="output-desc">One daily line chart per weather variable, per station</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Logistics</h3>
+  <div class="output-grid">
+    <div class="output-item">
+      <div class="output-icon">🎈</div>
+      <div>
+        <div class="output-file">balloon_landing_summary_table.csv (+ HTML)</div>
+        <div class="output-desc">Passenger records by balloon company and lodge</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">✈️</div>
+      <div>
+        <div class="output-file">airstrip_operations_summary_table.csv (+ HTML)</div>
+        <div class="output-desc">Client counts pivoted by camp/lodge and arrival/departure</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">🔧</div>
+      <div>
+        <div class="output-file">airstrip_maintenance_summary_table.csv (+ HTML)</div>
+        <div class="output-desc">Dated log of airstrip maintenance activities</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Livestock</h3>
+  <div class="output-grid">
+    <div class="output-item">
+      <div class="output-icon">🐄</div>
+      <div>
+        <div class="output-file">mobile_boma_movement_summary_table.csv · boma_movement_map.html / .png</div>
+        <div class="output-desc">Daily count of boma movement events, and their locations map</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">🔢</div>
+      <div>
+        <div class="output-file">total_cattle_count_summary_table.csv (+ HTML)</div>
+        <div class="output-desc">Cattle counts by zone, with total</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">⚠️</div>
+      <div>
+        <div class="output-file">total_livestock_predation_summary_table.csv · livestock_predation_summary_table.html/.csv · livestock_predation_events.html / .png</div>
+        <div class="output-desc">Daily predation count, a separate detailed per-event table, and the predation events map coloured by species</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">🚫</div>
+      <div>
+        <div class="output-file">illegal_grazing_map.html / .png</div>
+        <div class="output-desc">Illegal grazing locations map</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Wildlife Incidents</h3>
+  <div class="output-grid">
+    <div class="output-item">
+      <div class="output-icon">🔥</div>
+      <div>
+        <div class="output-file">wildlife_events_recorded.csv / wildlife_incidents_summary_table.csv / wildlife_incidents_recorded_by_date.csv</div>
+        <div class="output-desc">Raw, pivoted, and daily-count views of wildlife incident events</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">🗺️</div>
+      <div>
+        <div class="output-file">wildlife_incidents_map.html / .png</div>
+        <div class="output-desc">Incident locations coloured by incident type</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Wildlife Sightings</h3>
+  <div class="output-grid">
+    <div class="output-item">
+      <div class="output-icon">🐘</div>
+      <div>
+        <div class="output-file">elephant_sightings_events.html · elephant_herd_types_map.html · elephant_herd_size_bar_chart.html · overall_elephant_summary_table.csv</div>
+        <div class="output-desc">Herd-composition map, herd-size bubble map, herd-size bar chart, and summary table</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">🐃</div>
+      <div>
+        <div class="output-file">buffalo_sightings_events.html · buffalo_herd_types_map.html · buffalo_herd_size_bar_chart.html · overall_buffalo_summary_table.csv</div>
+        <div class="output-desc">Herd-composition map, herd-size bubble map, herd-size bar chart, and summary table</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">🦁</div>
+      <div>
+        <div class="output-file">lion_pride_sightings_map.html / overall_lion_summary_table.csv</div>
+        <div class="output-desc">Sightings map coloured by pride, and pride summary table</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">🐆</div>
+      <div>
+        <div class="output-file">leopard_sightings_map.html / overall_leopard_summary_table.csv · cheetah_sightings_map.html / overall_cheetah_summary_table.csv</div>
+        <div class="output-desc">Sightings maps coloured by individuals present, and summary tables</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">🦒</div>
+      <div>
+        <div class="output-file">giraffe_sightings_map.html / overall_giraffe_summary_table.csv · rhino_sightings_map.html / overall_rhino_summary_table.csv · hartebeest_sightings_map.html / overall_hart_summary_table.csv</div>
+        <div class="output-desc">Fixed-colour sightings maps and daily sightings summary tables</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Events Overview</h3>
+  <div class="output-grid">
+    <div class="output-item">
+      <div class="output-icon">📊</div>
+      <div>
+        <div class="output-file">total_events_recorded_by_date.csv / total_events_recorded_by_type.csv / total_events_recorded.html / .png</div>
+        <div class="output-desc">All events recorded by date and by type, with a line chart</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Patrols</h3>
+  <div class="output-grid">
+    <div class="output-item">
+      <div class="output-icon">📋</div>
+      <div>
+        <div class="output-file">patrol_events.csv · patrol_purpose_summary.csv (+ HTML)</div>
+        <div class="output-desc">Flattened patrol_info event details, and patrol count by purpose</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">📍</div>
+      <div>
+        <div class="output-file">patrol_relocations.geoparquet</div>
+        <div class="output-desc">Combined patrol observation dataset with patrol metadata</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">🥾</div>
+      <div>
+        <div class="output-file">foot_patrol_efforts.csv · foot_patrol_map.html / .png</div>
+        <div class="output-desc">Foot patrol effort summary and coverage grid map</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">🚙</div>
+      <div>
+        <div class="output-file">vehicle_patrol_efforts.csv · vehicle_patrol_map.html / .png</div>
+        <div class="output-desc">Vehicle patrol effort summary and coverage grid map</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">🏍️</div>
+      <div>
+        <div class="output-file">motorbike_patrol_efforts.csv · motor_patrol_map.html / .png</div>
+        <div class="output-desc">Motorbike patrol effort summary and coverage grid map</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">🗺️</div>
+      <div>
+        <div class="output-file">overall_patrol_map.html / .png · patrol_trajectories.geoparquet</div>
+        <div class="output-desc">Combined (foot + vehicle + motorbike) patrol coverage grid map and data</div>
+      </div>
+    </div>
+    <div class="output-item">
+      <div class="output-icon">🧑‍🤝‍🧑</div>
+      <div>
+        <div class="output-file">overall_patrol_efforts.csv (+ HTML) · patrol_coverage.csv (+ HTML)</div>
+        <div class="output-desc">Per-ranger effort summary, and conservancy patrol occupancy percentage</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Report</h3>
+  <div class="output-grid">
+    <div class="output-item">
+      <div class="output-icon">📄</div>
+      <div>
+        <div class="output-file">overall_report.docx</div>
+        <div class="output-desc">Final Word report, assembled from the Dropbox-hosted template and all outputs above</div>
+      </div>
+    </div>
+  </div>
+
+  <hr />
+
+  <!-- ── Dashboard ── -->
+  <h2 id="dashboard">Dashboard</h2>
+  <p>The workflow run also produces the <strong>MNC Overall Report dashboard</strong>, viewable in the workflow runner, with 44 widgets:</p>
+
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Group</th><th>Widgets</th></tr></thead>
+    <tbody>
+      <tr><td>Weather (7)</td><td>Precipitation, Temperature, Wind Speed, Wind Gusts, Soil Temperature, Relative Humidity, Atmospheric Pressure</td></tr>
+      <tr><td>Logistics (3)</td><td>Balloon Landing Summary, Airstrip Operations Summary, Airstrip Maintenance Summary</td></tr>
+      <tr><td>Livestock (5)</td><td>Mobile Boma Movement Map, Livestock Predation Events Map, Illegal Grazing Events Map, Total Cattle Count Summary, Livestock Predation Summary</td></tr>
+      <tr><td>Wildlife (21)</td><td>Wildlife Incident Map, Elephant Herd Size Map, Elephant Herd Composition Map, Elephant Herd Size Distribution, Elephant Herd Composition Summary, Buffalo Herd Size Map, Buffalo Herd Composition Map, Buffalo Herd Size Distribution, Buffalo Herd Composition Summary, Lion Sightings Map, Lion Sightings Summary, Leopard Sightings Map, Leopard Sightings Summary, Cheetah Sightings Map, Cheetah Sightings Summary, Giraffe Sightings Map, Giraffe Sightings Summary, Hartebeest Sightings Map, Hartebeest Sightings Summary, Rhino Sightings Map, Rhino Sightings Summary</td></tr>
+      <tr><td>Patrol (8)</td><td>Foot Patrol Coverage Map, Vehicle Patrol Coverage Map, Motorbike Patrol Coverage Map, Overall Patrol Coverage Map, Total Events Recorded, Patrol Purpose Summary, Overall Patrol Efforts, Conservancy Patrol Occupancy</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout">
+    <strong>Note:</strong> Each table widget is sortable and filterable in place; downloading directly from the widget is disabled — use the corresponding CSV output file for that.
+  </div>
+
+  <hr />
+
+  <h2>Further Reading</h2>
+  <p>
+    For an implementation-level breakdown of every task in the compiled workflow spec — dependency
+    versions, skip conditions, the geospatial asset pipeline, and the full event-processing
+    pipeline for every branch — see the
+    <a href="assets/mnc_overall_report_technical_guide.pdf">Technical Guide (PDF)</a>.
+  </p>
+
+</div>
+
+<footer>
+  Source: <a href="https://github.com/wildlife-dynamics/mnc-overall-report">wildlife-dynamics/mnc-overall-report</a>
+</footer>
+
+</body>
+</html>

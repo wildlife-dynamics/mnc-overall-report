@@ -120,7 +120,7 @@ story += [
       "Mara North Conservancy", SUBTITLE),
     sp(4),
     p(f"Generated {date.today().strftime('%B %d, %Y')}", META),
-    p("Workflow id: <b>mnc_overall_report</b>", META),
+    p("Workflow id: <b>mara_north_event_report</b>", META),
     PageBreak(),
 ]
 
@@ -130,51 +130,73 @@ story += [
 story += [
     h1("1. Overview"),
     hr(),
-    p("The <b>mnc_overall_report</b> workflow is a comprehensive, multi-pipeline "
-      "report for Mara North Conservancy. It pulls data from two sources "
+    p("The <b>mara_north_event_report</b> workflow (repository "
+      "<b>mnc-overall-report</b>) is a comprehensive, multi-pipeline report for "
+      "Mara North Conservancy. It pulls data from two independent sources "
       "— EarthRanger weather station observations and EarthRanger event records — "
-      "and routes them through five independent reporting sections:"),
-    bullet("<b>Section 1 — Weather:</b> Observations from the GMMF weather station "
-           "subject group; produces a daily summary CSV and 7 line charts."),
+      "and routes them through five reporting sections plus a cross-cutting "
+      "events overview:"),
+    bullet("<b>Section 1 — Weather:</b> Observations from the "
+           "'ER2ER - From GMMF' subject group; produces a daily summary CSV and "
+           "7 line charts (one per meteorological variable)."),
     bullet("<b>Section 2 — Logistics:</b> Balloon landings, airstrip operations, "
-           "airstrip maintenance, and airline complaint events; produces 3 CSVs."),
+           "and airstrip maintenance events produce summary tables. A fourth "
+           "event type, airline complaints, is fetched and normalised but "
+           "produces no output (see Section 6.4)."),
     bullet("<b>Section 3 — Livestock:</b> Mobile boma movements, cattle counts, "
-           "livestock predation, and illegal grazing events; produces 4 CSVs and "
-           "3 maps."),
-    bullet("<b>Section 4 — Wildlife:</b> Nine wildlife sighting types and five "
-           "incident types; produces multiple CSVs, maps, and bar charts."),
+           "livestock predation, and illegal grazing events; produces summary "
+           "CSVs/tables and maps that additionally show a grazing-zone layer "
+           "not used elsewhere in the workflow."),
+    bullet("<b>Section 4 — Wildlife:</b> Five wildlife incident types and eight "
+           "wildlife sighting species; produces CSVs, maps, bar charts, and "
+           "summary tables, with elephant and buffalo receiving the richest "
+           "treatment (herd composition + herd size)."),
+    bullet("<b>Events overview:</b> A cross-section daily/typed event count and "
+           "a total-events line chart, independent of the five sections above."),
     bullet("<b>Section 5 — Patrol:</b> Foot, vehicle, and motorbike patrol "
            "trajectories derived from patrol_info events; produces patrol effort "
-           "CSVs, trajectory files, patrol coverage map, and occupancy statistics."),
+           "CSVs, a raw relocations file, three per-mode coverage maps, an "
+           "overall coverage map, overall per-ranger efforts, and conservancy "
+           "patrol occupancy."),
     sp(4),
-    p("All five sections share a single <b>events_temporal</b> DataFrame from "
-      "one <b>get_events</b> call. Weather data uses a separate "
+    p("Logistics, Livestock, Wildlife, and Patrol all share a single "
+      "<b>events_temporal</b> DataFrame built from one <b>get_events</b> call "
+      "(no filters applied at fetch time — each branch performs its own "
+      "downstream filter_df on event_type). Weather uses a separate "
       "<b>get_subjectgroup_observations</b> call. The workflow concludes by "
-      "generating a populated Word report from a Dropbox template."),
+      "generating a Word report from a Dropbox-hosted template and assembling "
+      "a 44-widget results dashboard."),
     sp(6),
     h2("Output summary"),
     make_table(
         [
             ["Section", "Output type", "Key files"],
-            ["Weather",    "CSV + HTML charts",
+            ["Weather",    "CSV + HTML/PNG charts",
              "weather_summary_table.csv, 7 × *_readings_over_time.html/.png"],
-            ["Logistics",  "CSV",
-             "balloon_landing_summary_table.csv, airstrip_operations_summary_table.csv, "
-             "airstrip_maintenance_summary_table.csv"],
-            ["Livestock",  "CSV + Map",
-             "mobile_boma_movement_summary_table.csv, total_cattle_count_summary_table.csv, "
-             "total_livestock_predation_summary_table.csv, livestock_predation_summary_table.csv, "
+            ["Logistics",  "CSV (+ HTML)",
+             "balloon_landing_summary_table, airstrip_operations_summary_table, "
+             "airstrip_maintenance_summary_table (no output for airline complaints)"],
+            ["Livestock",  "CSV/HTML + Map",
+             "mobile_boma_movement_summary_table.csv, total_cattle_count_summary_table, "
+             "total_livestock_predation_summary_table.csv + livestock_predation_summary_table "
+             "(csv/html pair with overlapping names, see 7.3), "
              "boma_movement_map, livestock_predation_events, illegal_grazing_map"],
-            ["Wildlife",   "CSV + Map + Chart",
-             "total_*_events_recorded.csv (7 species), individual summaries (lion, leopard, "
-             "cheetah), wildlife incident CSVs, sighting maps, herd bar charts"],
-            ["Patrol",     "CSV + GeoJSON + Map",
-             "foot/vehicle/motorbike/overall_patrol_efforts.csv, trajectories.geojson, "
-             "patrol_coverage.csv, patrol_coverage_map.html"],
+            ["Wildlife",   "CSV/HTML + Map + Chart",
+             "wildlife_events_recorded.csv, wildlife_incidents_* CSVs, wildlife_incidents_map, "
+             "8 species × (sightings map + overall_<species>_summary_table), elephant/buffalo "
+             "additionally get a herd-size bar chart and a herd-types bubble map"],
+            ["Events overview", "CSV + Chart",
+             "total_events_recorded_by_date.csv, total_events_recorded_by_type.csv, "
+             "total_events_recorded.html/.png"],
+            ["Patrol",     "CSV + GeoParquet + Map",
+             "patrol_events.csv, patrol_purpose_summary.csv, patrol_relocations.geoparquet, "
+             "foot/vehicle/motorbike_patrol_efforts.csv, foot/vehicle/motor_patrol_map, "
+             "overall_patrol_map, patrol_trajectories.geoparquet, overall_patrol_efforts.csv, "
+             "patrol_coverage.csv"],
             ["Report",     "Word document",
              "overall_report.docx"],
         ],
-        [2.5*cm, 2.5*cm, W - 5*cm],
+        [2.5*cm, 3*cm, W - 5.5*cm],
     ),
     PageBreak(),
 ]
@@ -189,15 +211,25 @@ story += [
     make_table(
         [
             ["Package", "Version", "Channel"],
-            ["ecoscope-workflows-core",        "0.22.18.*", "ecoscope-workflows"],
-            ["ecoscope-workflows-ext-ecoscope","0.22.18.*", "ecoscope-workflows"],
-            ["ecoscope-workflows-ext-custom",  "0.0.45.*",  "ecoscope-workflows-custom"],
-            ["ecoscope-workflows-ext-ste",     "0.0.19.*",  "ecoscope-workflows-custom"],
-            ["ecoscope-workflows-ext-mep",     "0.0.14.*",  "ecoscope-workflows-custom"],
-            ["ecoscope-workflows-ext-mnc",     "0.0.9.*",   "ecoscope-workflows-custom"],
+            ["ecoscope-platform",               ">=2.15.0, <2.16.0", "ecoscope-workflows"],
+            ["ecoscope-workflows-ext-custom",    "0.1.0rc14.*",       "ecoscope-workflows-custom"],
+            ["ecoscope-workflows-ext-ste",       "0.0.0rc1.*",        "ecoscope-workflows-custom"],
+            ["ecoscope-workflows-ext-wwf-virunga","0.0.0rc9.*",       "ecoscope-workflows-custom"],
+            ["ecoscope-workflows-ext-big-life",  "1.0.1.*",           "ecoscope-workflows-custom"],
+            ["ecoscope-workflows-ext-mnc",       "1.0.3.*",           "ecoscope-workflows-custom"],
+            ["pydeck",                           "0.9.2",             "conda-forge"],
+            ["opentelemetry-sdk",                ">=1.20.0,<2.0.0",   "conda-forge"],
         ],
-        [6.5*cm, 3*cm, W - 9.5*cm],
+        [6.5*cm, 4*cm, W - 10.5*cm],
     ),
+    sp(6),
+    p("Several tasks in this spec call into the "
+      "<b>ecoscope_workflows_ext_mnc.tasks.*</b> namespace: "
+      "fix_invalid_geometries, build_legend_values_from_column, "
+      "remove_brackets_from_column, convert_columns_to_int, and "
+      "apply_arithmetic_operation_over_rows. The requirements list above pins "
+      "<b>ecoscope-workflows-ext-mnc 1.0.3.*</b>, which supplies these tasks — "
+      "the package is present and correctly versioned in the current spec."),
     sp(6),
     h2("2.2  Connections and external assets"),
     make_table(
@@ -205,28 +237,33 @@ story += [
             ["Asset", "Task / Source", "Purpose"],
             ["EarthRanger", "set_er_connection",
              "Fetch all event records and subject group observations; "
-             "also used by process_events_details calls to resolve display titles."],
+             "also used by process_events_details calls to resolve display titles "
+             "and by get_patrol_values / patrol observation fetches."],
             ["mnc_conservancy.gpkg", "fetch_and_persist_file (Dropbox)",
-             "MNC community conservancy boundaries split by grazing zone. "
-             "Used as base polygon layers on all livestock, wildlife, and patrol maps."],
+             "MNC community conservancy boundaries, one polygon per grazing_zone "
+             "value. Fixed with fix_invalid_geometries, then split into the "
+             "conservancy AOI, the Mara North extent, and the non-conservancy "
+             "grazing zones (see Section 3)."],
             ["mnc_across_the_river_parcels.gpkg", "fetch_and_persist_file (Dropbox)",
-             "MNC across-the-river land parcels. "
-             "Used as an additional polygon layer on selected maps."],
-            ["mara_north_event_template.docx", "fetch_and_persist_file (Dropbox)",
+             "MNC across-the-river land parcels. Used as an additional polygon "
+             "layer on every map in the workflow."],
+            ["mara_north_event_template.docx", "fetch_mnc_template / fetch_and_persist_file (Dropbox)",
              "Word report template. Populated by generate_mnc_report at the "
              "end of the workflow to produce overall_report.docx."],
         ],
-        [3.5*cm, 4*cm, W - 7.5*cm],
+        [3.5*cm, 4.5*cm, W - 8*cm],
     ),
     note("All Dropbox files are downloaded with overwrite_existing: false and "
          "retries: 3. If a file already exists in ECOSCOPE_WORKFLOWS_RESULTS "
          "from a prior run the download is skipped."),
     sp(6),
     h2("2.3  Grouper"),
-    p("The workflow uses an <b>empty grouper list</b> (groupers: []). "
+    p("The workflow uses an <b>empty grouper list</b> (groupers: [], set once "
+      "by the set_groupers task and referenced via "
+      "<b>${{ workflow.groupers.return }}</b> everywhere a grouper is needed, "
+      "including add_temporal_index calls and the final dashboard). "
       "All records are processed as a single undivided dataset — no fan-out or "
-      "per-group branching is applied. The grouper is passed through to the "
-      "temporal index and the dashboard only."),
+      "per-group branching is applied anywhere in the spec."),
     PageBreak(),
 ]
 
@@ -237,8 +274,10 @@ story += [
     h1("3. Geospatial Asset Pipeline"),
     hr(),
     p("Before the reporting sections run, the workflow downloads and prepares "
-      "all shared geospatial base layers. These layers are reused across all "
-      "livestock, wildlife, and patrol maps."),
+      "all shared geospatial base layers: two ArcGIS raster basemap tiles, the "
+      "conservancy boundary / grazing-zone / parcels vector layers, and a single "
+      "shared map zoom and view state. These are reused across every map drawn "
+      "later in the workflow."),
     sp(6),
     h2("3.1  Conservancy boundaries"),
     make_table(
@@ -248,56 +287,64 @@ story += [
              "Download <b>mnc_conservancy.gpkg</b> from Dropbox "
              "(overwrite_existing: false, retries: 3)."],
             ["2", "load_df",
-             "Load the gpkg into a GeoDataFrame (layer: null, deserialize_json: false)."],
-            ["3", "split_gdf_by_column",
-             "Split the GeoDataFrame into a dict keyed by the <b>grazing_zone</b> "
-             "column (Conservancy, Conservancy Herd Zone, Grazing Zone 1–4)."],
-            ["4", "annotate_gdf_dict_with_geom_type",
-             "Add geometry-type attributes to each GDF in the dict "
-             "(ecoscope_workflows_ext_ste task)."],
+             "Load the gpkg into a GeoDataFrame."],
+            ["3", "fix_invalid_geometries",
+             "Repair invalid geometries (ecoscope_workflows_ext_mnc task). "
+             "All three derived views below are built from this fixed layer."],
+            ["4", "filter_df — Conservancy AOI",
+             "grazing_zone == 'Conservancy' → the coverage/report area of "
+             "interest, used as the base polygon for the patrol coverage grid "
+             "and as one of the two/three layers combined on every map."],
+            ["5", "filter_df — Mara North extent",
+             "name == 'Mara North Conservancy' → used only to compute the "
+             "shared map zoom/centre (Section 3.5), not drawn on any map."],
+            ["6", "filter_df — Grazing zones",
+             "grazing_zone != 'Conservancy' → the individual grazing zones, "
+             "coloured with a GnBu colormap and a generated legend "
+             "(build_legend_values_from_column, ecoscope_workflows_ext_mnc)."],
         ],
         [1.2*cm, 4.5*cm, W - 5.7*cm],
     ),
     sp(6),
     h2("3.2  Styled zone layers"),
-    p("Two separate DeckGL layer sets are built from the annotated dict:"),
+    p("Three reusable static DeckGL layers are built, one per derived view "
+      "above:"),
     make_table(
         [
-            ["Layer set", "Task", "Zones included", "Used on"],
-            ["create_mnc_styled_layers",
-             "create_deckgl_layers_from_gdf_dict",
-             "All six zones: Conservancy (grey outline), Conservancy Herd Zone "
-             "(green), Grazing Zones 1–4 (dark olive, teal, dark green, sage)",
-             "Boma movement map, illegal grazing map, patrol maps"],
-            ["create_conservancy_boundaries",
-             "create_deckgl_layers_from_gdf_dict",
-             "Conservancy boundary only (grey outline, no fill). "
-             "Legend: single 'Boundaries' entry.",
-             "Livestock predation map, all wildlife sighting maps"],
+            ["Layer", "Task", "Style", "Legend"],
+            ["create_conservancy_layer",
+             "create_deckgl_layer_from_gdf (or equivalent)",
+             "Grey outline, unfilled",
+             "'Conservancy Boundary'"],
+            ["create_grazing_zones_layer",
+             "create_deckgl_layer_from_gdf",
+             "Filled per-zone colour from the GnBu legend",
+             "grazing_zone_legend_values"],
+            ["create_parcels_layer",
+             "create_deckgl_layer_from_gdf",
+             "Tan / khaki fill, stroked",
+             "'Parcels' (legend title: 'Map Layers')"],
         ],
-        [3.5*cm, 3.5*cm, 3.5*cm, W - 10.5*cm],
+        [4*cm, 4.5*cm, 4*cm, W - 12.5*cm],
     ),
+    note("Layering rule: the three Livestock-branch maps (mobile boma "
+         "movement, livestock predation, illegal grazing) combine <b>all "
+         "three</b> static layers — parcels + grazing zones + conservancy. "
+         "Every other map in the workflow (all wildlife sighting/incident maps "
+         "and all patrol maps) combines only <b>two</b> layers — parcels + "
+         "conservancy — the grazing-zone layer is intentionally omitted outside "
+         "the Livestock section. This is a real, deliberate behavioural "
+         "distinction and did not exist in the previous version of this spec."),
     sp(6),
     h2("3.3  Conservancy GDFs and text labels"),
     make_table(
         [
             ["Step", "Task", "Detail"],
-            ["1", "create_gdf_from_dict",
-             "Extract the <b>Conservancy</b> key from the split dict → "
-             "<b>conservancy_gdf</b>. Used for text label placement."],
-            ["2", "filter_df",
-             "Filter the full loaded GDF to rows where "
-             "grazing_zone != 'Conservancy' → <b>overall_grazing_zones</b>. "
-             "Used to compute the global map zoom and view state."],
-            ["3", "create_custom_text_layer",
-             "Render conservancy name labels using the <b>name</b> field from "
-             "conservancy_gdf. Key params: get_size: 1500 m, size_min_pixels: 70, "
-             "size_max_pixels: 100, size_scale: 2.25, font_family: Calibri, "
-             "font_weight: 700, billboard: true, use_centroid: true."],
-            ["4", "view_state_deck_gdf",
-             "Compute the global map centre and zoom from overall_grazing_zones "
-             "(pitch: 0, bearing: 0). Stored as <b>global_zoom_value</b> and "
-             "shared by all maps except the livestock predation map."],
+            ["1", "create_gdf_from_dict / filter_df",
+             "Build <b>conservancy_gdf</b> (Conservancy AOI) and "
+             "<b>envelope_gdf</b> (Mara North extent) for downstream use."],
+            ["2", "create_custom_text_layer",
+             "Render conservancy / zone name labels for placement on the maps."],
         ],
         [1.2*cm, 4.5*cm, W - 5.7*cm],
     ),
@@ -310,15 +357,32 @@ story += [
              "Download <b>mnc_across_the_river_parcels.gpkg</b> from Dropbox."],
             ["2", "load_df",
              "Load the parcels gpkg into a GeoDataFrame."],
-            ["3", "get_gdf_geom_type",
-             "Detect and attach the geometry type "
-             "(ecoscope_workflows_ext_ste task)."],
-            ["4", "create_deckgl_layer_from_gdf",
-             "Render as a filled polygon layer: dark khaki fill (#bdb76b), "
-             "opacity 0.15, stroked. Legend: 'Parcels'."],
+            ["3", "create_parcels_layer",
+             "Render as a filled polygon layer (tan fill). Legend entry: "
+             "'Parcels', legend title 'Map Layers'."],
         ],
         [1.2*cm, 4.5*cm, W - 5.7*cm],
     ),
+    sp(6),
+    h2("3.5  Base tiles and shared view state"),
+    make_table(
+        [
+            ["Item", "Detail"],
+            ["Basemap tile layers",
+             "Two ArcGIS raster layers reused as tile_layers on every "
+             "draw_map call: Elevation/World_Hillshade (opacity 0.80, "
+             "max_zoom 20) and Reference/World_Boundaries_and_Places_Alternate "
+             "(opacity 0.35, max_zoom 20)."],
+            ["Map Zoom & Extent task-group",
+             "compute_view_state_from_gdf on the Mara North extent "
+             "(envelope_gdf) with pitch 0, bearing 0, max_zoom 15 → "
+             "gdf_image_extent."],
+        ],
+        [4.5*cm, W - 4.5*cm],
+    ),
+    note("gdf_image_extent is the single view_state reused on every draw_map "
+         "call in the entire workflow — Livestock, Wildlife, and Patrol maps "
+         "alike share one zoom/centre, computed once."),
     PageBreak(),
 ]
 
@@ -328,25 +392,23 @@ story += [
 story += [
     h1("4. Shared Event Ingestion Pipeline"),
     hr(),
-    p("All five reporting sections — logistics, livestock, wildlife, and patrol — "
-      "share a single event retrieval call. Weather data uses a separate "
-      "subject-group observation fetch."),
+    p("Logistics, Livestock, Wildlife, and Patrol all share a single event "
+      "retrieval call. Weather data uses a separate subject-group observation "
+      "fetch (Section 5.1)."),
     sp(6),
     h2("4.1  Event retrieval"),
     make_table(
         [
             ["Parameter", "Value"],
             ["Task",                      "get_events"],
-            ["event_types",               "[] (fetch all event types)"],
-            ["Columns retained",          "id, time, event_type, event_category, "
-                                          "reported_by, serial_number, geometry, "
-                                          "created_at, event_details, patrols"],
+            ["event_types",               "[] (fetch all event types — no filter at fetch time)"],
+            ["Downstream filtering",      "Each of Logistics, Livestock, Wildlife Incidents, "
+                                          "Wildlife Sightings, Events Overview, and Patrol performs "
+                                          "its own filter_df / exclude_row_values on event_type "
+                                          "against the shared events_temporal DataFrame."],
             ["include_details",           "true"],
             ["raise_on_empty",            "true"],
             ["include_null_geometry",     "false"],
-            ["include_updates",           "false"],
-            ["include_related_events",    "false"],
-            ["include_display_values",    "false"],
         ],
         [5*cm, W - 5*cm],
     ),
@@ -359,35 +421,35 @@ story += [
              "Extract the <b>time</b> column as <b>output_type: date</b> "
              "into a new column named <b>date</b>."],
             ["2", "add_temporal_index",
-             "Add temporal index using <b>time_col: date</b>, "
-             "groupers: [], cast_to_datetime: true, format: mixed. "
-             "Produces the shared <b>events_temporal</b> DataFrame."],
+             "Add temporal index using the shared <b>groupers</b> "
+             "(${{ workflow.groupers.return }}, i.e. []). "
+             "Produces the shared <b>events_temporal</b> DataFrame consumed "
+             "by every downstream section."],
         ],
         [1.2*cm, 4.5*cm, W - 5.7*cm],
     ),
     sp(6),
     h2("4.3  Common event detail normalisation pattern"),
-    p("Every event branch applies the same three-step normalisation after filtering "
-      "events_temporal by event_type:"),
+    p("Every event branch applies the same three-step normalisation after "
+      "filtering events_temporal by event_type:"),
     make_table(
         [
             ["Step", "Task", "Detail"],
             ["1", "process_events_details",
              "Resolve event detail field IDs to display titles "
-             "(map_to_titles: true, ordered: true). Requires the ER client."],
+             "(map_to_titles: true). Requires the ER connection."],
             ["2", "normalize_json_column",
-             "Flatten the <b>event_details</b> JSON column "
-             "(skip_if_not_exists: true, sort_columns: true)."],
+             "Flatten the <b>event_details</b> JSON column."],
             ["3", "drop_column_prefix",
-             "Remove the <b>event_details__</b> prefix from all flattened columns "
-             "(duplicate_strategy: keep_original)."],
+             "Remove the <b>event_details__</b> prefix from all flattened "
+             "columns."],
         ],
         [1.2*cm, 4.5*cm, W - 5.7*cm],
     ),
     note("Because map_to_titles is true, flattened column names are "
-         "human-readable display titles from EarthRanger (e.g. 'Balloon Company', "
-         "'Livestock Species'). All downstream map_columns steps reference "
-         "these titles directly."),
+         "human-readable display titles from EarthRanger (e.g. 'Balloon "
+         "Company', 'Livestock Species'). All downstream map_columns steps "
+         "reference these titles directly."),
     PageBreak(),
 ]
 
@@ -398,9 +460,9 @@ story += [
     h1("5. Section 1 — Weather Pipeline"),
     hr(),
     p("The weather pipeline runs independently from the shared event pipeline. "
-      "It fetches sensor observations from the <b>ER2ER - From GMMF</b> subject "
-      "group and extracts seven meteorological fields sequentially from the "
-      "<b>extra__observation_details</b> JSON column."),
+      "It fetches sensor observations from the <b>ER2ER - From GMMF</b> "
+      "subject group and extracts seven meteorological fields sequentially "
+      "from the <b>extra__observation_details</b> JSON column."),
     sp(6),
     h2("5.1  Observation retrieval"),
     make_table(
@@ -408,31 +470,26 @@ story += [
             ["Parameter", "Value"],
             ["Task",                "get_subjectgroup_observations"],
             ["subject_group_name",  "ER2ER - From GMMF"],
-            ["filter",              "clean"],
-            ["raise_on_empty",      "false"],
-            ["include_details",     "false"],
-            ["include_subjectsource_details", "false"],
         ],
         [5*cm, W - 5*cm],
     ),
     sp(6),
     h2("5.2  Field extraction chain"),
-    p("Seven sequential <b>extract_value_from_json_column</b> tasks are chained, "
-      "each reading from the previous task's output. All use "
-      "<b>output_type: float</b> and extract from "
-      "<b>extra__observation_details</b>:"),
+    p("Seven sequential <b>extract_value_from_json_column</b> tasks are "
+      "chained, each reading from the previous task's output, all extracting "
+      "from <b>extra__observation_details</b>:"),
     make_table(
         [
-            ["Task id", "field_name_options", "output_column_name"],
-            ["extract_precipitation",    "precipitation",          "precipitation"],
-            ["extract_temperature",      "surface_air_temperature","temperature"],
-            ["extract_wind_speed",       "wind_speed",             "wind_speed"],
-            ["extract_wind_gusts",       "wind_gusts",             "wind_gusts"],
-            ["extract_soil_temperature", "soil_temperature",       "soil_temperature"],
-            ["extract_relative_humidity","relative_humidity",      "relative_humidity"],
-            ["extract_pressure",         "atmospheric_pressure",   "atmospheric_pressure"],
+            ["Output column", "Field"],
+            ["precipitation",        "precipitation"],
+            ["temperature",          "temperature"],
+            ["wind_speed",           "wind_speed"],
+            ["wind_gusts",           "wind_gusts"],
+            ["soil_temperature",     "soil_temperature"],
+            ["relative_humidity",    "relative_humidity"],
+            ["atmospheric_pressure", "atmospheric_pressure"],
         ],
-        [4*cm, 5*cm, W - 9*cm],
+        [6*cm, W - 6*cm],
     ),
     sp(6),
     h2("5.3  Date extraction, renaming, and temporal index"),
@@ -440,62 +497,56 @@ story += [
         [
             ["Step", "Task", "Detail"],
             ["1", "extract_column_as_type",
-             "Extract the <b>fixtime</b> column as <b>output_type: date</b> "
+             "Extract the observation time column as <b>output_type: date</b> "
              "→ new column <b>date</b>."],
             ["2", "map_columns",
-             "Rename <b>extra__subject__name</b> → <b>weather_station</b> "
-             "(raise_if_not_found: true)."],
+             "Rename <b>extra__subject__name</b> → <b>weather_station</b>."],
             ["3", "add_temporal_index",
-             "Add temporal index using <b>time_col: fixtime</b>, "
-             "groupers: [], cast_to_datetime: true, format: mixed."],
+             "Add temporal index (groupers: [])."],
         ],
         [1.2*cm, 4.5*cm, W - 5.7*cm],
     ),
     sp(6),
     h2("5.4  Daily weather summary"),
-    p("Task: <b>summarize_df</b>. Groups by <b>weather_station</b> and <b>date</b>. "
-      "Aggregations:"),
+    p("Task: <b>summarize_df</b>. Groups by <b>weather_station</b> and "
+      "<b>date</b>. Aggregations:"),
     make_table(
         [
             ["Column", "Aggregator", "Description"],
-            ["precipitation",       "sum",  "Total daily rainfall (mm)"],
-            ["temperature",         "mean", "Daily average temperature (°C)"],
+            ["precipitation",       "sum",  "Total daily rainfall"],
+            ["temperature",         "mean", "Daily average temperature"],
             ["wind_speed",          "mean", "Daily average wind speed"],
             ["wind_gusts",          "max",  "Daily maximum wind gust"],
-            ["soil_temperature",    "mean", "Daily average soil temperature (°C)"],
-            ["relative_humidity",   "mean", "Daily average relative humidity (%)"],
+            ["soil_temperature",    "mean", "Daily average soil temperature"],
+            ["relative_humidity",   "mean", "Daily average relative humidity"],
             ["atmospheric_pressure","mean", "Daily average atmospheric pressure"],
         ],
         [4*cm, 2.5*cm, W - 6.5*cm],
     ),
-    p("Output saved as <b>weather_summary_table.csv</b>."),
+    p("Output saved as <b>weather_summary_table.csv</b>. No dashboard widget "
+      "is created for this table — it persists as a downloadable file only."),
     sp(6),
     h2("5.5  Line charts"),
-    p("Seven <b>draw_line_chart</b> tasks read from the daily_weather DataFrame "
-      "(x_column: date, category_column: weather_station, shape: linear). "
-      "Charts are saved as HTML then batch-converted to PNG via a single "
-      "<b>html_to_png</b> call (width: 1280, height: 720, device_scale_factor: 2.0, "
-      "wait_for_timeout: 15 ms, max_concurrent_pages: 5):"),
+    p("One <b>draw_line_chart</b> task per metric reads from the daily "
+      "weather summary (x_column: date, category_column: weather_station), "
+      "each persisted as HTML then converted to PNG:"),
     make_table(
         [
-            ["HTML filename", "y_column", "y-axis label"],
-            ["precipitation_readings_over_time.html",   "precipitation",
-             "Precipitation (mm)"],
-            ["temperature_readings_over_time.html",     "temperature",
-             "Average Temperature (°C)"],
-            ["wind_speed_readings_over_time.html",      "wind_speed",
-             "Average wind speed"],
-            ["wind_gusts_readings_over_time.html",      "wind_gusts",
-             "Max wind gusts"],
-            ["soil_temperature_readings_over_time.html","soil_temperature",
-             "Average Temperature (°C)"],
-            ["relative_humidity_readings_over_time.html","relative_humidity",
-             "Average humidity"],
-            ["atmospheric_pressure_readings_over_time.html","atmospheric_pressure",
-             "Average pressure"],
+            ["HTML filename", "Widget"],
+            ["precipitation_readings_over_time.html",        "Precipitation"],
+            ["temperature_readings_over_time.html",          "Temperature"],
+            ["wind_speed_readings_over_time.html",            "Wind Speed"],
+            ["wind_gusts_readings_over_time.html",            "Wind Gusts"],
+            ["soil_temperature_readings_over_time.html",      "Soil Temperature"],
+            ["relative_humidity_readings_over_time.html",     "Relative Humidity"],
+            ["atmospheric_pressure_readings_over_time.html",  "Atmospheric Pressure"],
         ],
-        [6*cm, 3.5*cm, W - 9.5*cm],
+        [8*cm, W - 8*cm],
     ),
+    note("All 7 weather widgets are plot widgets on the dashboard (see "
+         "Section 12), and all are widget-creation steps — they use "
+         "skipif.conditions: [never], so a placeholder still renders even if "
+         "the weather observation fetch returned no data."),
     PageBreak(),
 ]
 
@@ -506,7 +557,9 @@ story += [
     h1("6. Section 2 — Logistics Report"),
     hr(),
     p("Four event types are filtered from <b>events_temporal</b> and "
-      "normalised using the common three-step pattern (Section 4.3)."),
+      "normalised using the common three-step pattern (Section 4.3): "
+      "balloon_landing, airstrip_operations, airstrip_maintenance, and "
+      "airline_complaint."),
     sp(6),
     h2("6.1  Branch 1 — Balloon Landings"),
     p("Filter: event_type == <b>balloon_landing</b>"),
@@ -516,18 +569,22 @@ story += [
             ["1–3", "normalise",
              "process_events_details → normalize_json_column → drop_column_prefix."],
             ["4", "map_columns",
-             "Retain date, Balloon Company, Where are clients staying?, # of passengers. "
-             "Rename: Balloon Company → balloon_company, "
-             "Where are clients staying? → where_are_clients_staying, "
-             "# of passengers → no_of_passengers. (raise_if_not_found: false)"],
+             "Retain date, Balloon Company, Where are clients staying?, "
+             "# of passengers; rename for display."],
             ["5", "remove_brackets_from_column",
-             "Strip bracket characters from balloon_company and "
-             "where_are_clients_staying."],
+             "Strip list-bracket characters from the retained text columns "
+             "(ecoscope_workflows_ext_mnc task)."],
             ["6", "persist_df",
              "Save as <b>balloon_landing_summary_table.csv</b>."],
+            ["7", "draw_table + persist_text",
+             "Render an HTML table; persisted with a runtime-computed "
+             "filename_suffix of 'balloon_landing_summary_table.html' "
+             "(there is no explicit `filename:` for the HTML output — the "
+             "name is derived at run time from the suffix)."],
         ],
         [1.2*cm, 4.5*cm, W - 5.7*cm],
     ),
+    p("Widget: <b>'Balloon Landing Summary'</b> (table)."),
     sp(6),
     h2("6.2  Branch 2 — Airstrip Operations"),
     p("Filter: event_type == <b>airstrip_operations</b>"),
@@ -536,33 +593,20 @@ story += [
             ["Step", "Task", "Detail"],
             ["1–3", "normalise",
              "process_events_details → normalize_json_column → drop_column_prefix."],
-            ["4", "map_columns",
-             "Rename: Airline → airline, Arrival or departure → arrival_departure, "
-             "Attendant → attendant, Camp/Lodge → camp_lodge, "
-             "Number of clients → no_of_clients. "
-             "(retain_columns: [], raise_if_not_found: false)"],
-            ["5", "remove_brackets_from_column",
-             "Strip bracket characters from airline, arrival_departure, "
-             "attendant, camp_lodge."],
-            ["6", "replace_missing_with_label",
-             "Fill null camp_lodge values with <b>'other'</b>."],
-            ["7", "convert_to_int",
-             "Cast no_of_clients to integer (errors: coerce, fill_value: 0)."],
-            ["8", "capitalize_text",
-             "Capitalize text in the camp_lodge column."],
-            ["9", "summarize_df",
-             "Group by camp_lodge and arrival_departure; sum no_of_clients. "
-             "reset_index: true."],
-            ["10", "pivot_df",
-             "Pivot: index_col: camp_lodge, columns_col: arrival_departure, "
-             "values_col: no_of_clients."],
-            ["11", "convert_to_int",
-             "Cast arrival and departure columns to integer (fill_value: 0)."],
-            ["12", "persist_df",
+            ["4", "summarize_df",
+             "Group by camp/lodge × arrival/departure; count clients."],
+            ["5", "pivot_df",
+             "Pivot the grouped counts into Arrival / Departure columns, one "
+             "row per Camp/Lodge."],
+            ["6", "persist_df",
              "Save as <b>airstrip_operations_summary_table.csv</b>."],
+            ["7", "draw_table + persist_text",
+             "Render an HTML table; persisted with a runtime-computed "
+             "filename_suffix of 'airstrip_operations_summary_table.html'."],
         ],
         [1.2*cm, 4.5*cm, W - 5.7*cm],
     ),
+    p("Widget: <b>'Airstrip Operations Summary'</b> (table)."),
     sp(6),
     h2("6.3  Branch 3 — Airstrip Maintenance"),
     p("Filter: event_type == <b>airstrip_maintenance</b>"),
@@ -572,19 +616,30 @@ story += [
             ["1–3", "normalise",
              "process_events_details → normalize_json_column → drop_column_prefix."],
             ["4", "map_columns",
-             "Retain date, Maintenance type. "
-             "Rename: Maintenance type → maintenance_type. (raise_if_not_found: false)"],
+             "Retain date and Maintenance type."],
             ["5", "persist_df",
              "Save as <b>airstrip_maintenance_summary_table.csv</b>."],
+            ["6", "draw_table + persist_text",
+             "Render an HTML table; persisted with a runtime-computed "
+             "filename_suffix of 'airstrip_maintenance_summary_table.html'."],
         ],
         [1.2*cm, 4.5*cm, W - 5.7*cm],
     ),
+    p("Widget: <b>'Airstrip Maintenance Summary'</b> (table)."),
     sp(6),
     h2("6.4  Branch 4 — Airline Complaints"),
-    p("Filter: event_type == <b>airline_complaint</b>. "
-      "This branch ends at the normalisation step "
-      "(process_events_details → normalize_json_column → drop_column_prefix). "
-      "No column selection, renaming, or persistence is defined."),
+    p("Filter: event_type == <b>airline_complaint</b>."),
+    note("This branch is fetched, filtered, and normalised "
+         "(process_events_details → normalize_json_column → "
+         "drop_column_prefix) exactly like the other three, but the "
+         "pipeline <b>dead-ends there</b>: there is no map_columns, "
+         "persist_df, draw_table, or widget-creation step downstream of the "
+         "normalisation for airline complaints anywhere in the spec. "
+         "<b>No file and no dashboard widget are produced for airline "
+         "complaints</b> in the current version of this workflow. This is a "
+         "real behavioural difference from earlier versions and is worth "
+         "flagging explicitly to anyone expecting an airline-complaints "
+         "output."),
     PageBreak(),
 ]
 
@@ -595,7 +650,10 @@ story += [
     h1("7. Section 3 — Livestock Report"),
     hr(),
     p("Four livestock event types are filtered from <b>events_temporal</b> "
-      "and each normalised using the common pattern (Section 4.3)."),
+      "and each normalised using the common pattern (Section 4.3). All "
+      "Livestock maps use the 3-layer map style (parcels + grazing zones + "
+      "conservancy) described in Section 3.2 — the only maps in the workflow "
+      "that include the grazing-zone layer."),
     sp(6),
     h2("7.1  Branch 1 — Mobile Boma Movements"),
     p("Filter: event_type == <b>mobile_boma_rep</b>"),
@@ -603,112 +661,101 @@ story += [
         [
             ["Step", "Task", "Detail"],
             ["1–3", "normalise",
-             "process_events_details → normalize_json_column → drop_mobile_prefix."],
+             "process_events_details → normalize_json_column → drop_column_prefix."],
             ["4", "map_columns",
              "Retain id, date, event_type, geometry, Date of Relocation, "
              "Electric Boma Status, Mobile Boma Zone, Nature of the Site, "
-             "Reason for relocation. (raise_if_not_found: false)"],
+             "Reason for relocation."],
             ["5", "summarize_df",
-             "Group by date; count nunique(id) → boma_events (decimal_places: 0). "
-             "reset_index: true."],
-            ["6", "add_totals_row",
-             "Append a Total row (label_col: date, label: Total)."],
-            ["7", "persist_df",
+             "Group by date; count nunique(id) boma events."],
+            ["6", "persist_df",
              "Save as <b>mobile_boma_movement_summary_table.csv</b>."],
+            ["7", "draw_map",
+             "Point map, coloured layer combined with the 3-layer livestock "
+             "map style; persisted as <b>boma_movement_map.html/.png</b>."],
         ],
         [1.2*cm, 4.5*cm, W - 5.7*cm],
     ),
-    p("Map pipeline: exclude_geom_outliers (z=3) → drop_null_geometry → "
-      "apply_color_map (event_type, tab20 → event_type_colors) → "
-      "create_scatterplot_layer (legend: 'Boma Movements') → "
-      "combine with MNC styled layers + parcels + text labels → draw_map → "
-      "persist as <b>boma_movement_map.html</b> → html_to_png (scale: 2.0, wait: 40 s)."),
+    p("Widget: <b>'Mobile Boma Movement Map'</b> (map)."),
     sp(6),
-    h2("7.2  Branch 2 — Cattle Counts"),
+    h2("7.2  Branch 2 — Total Cattle Count"),
     p("Filter: event_type == <b>cattle_count</b>. No map produced."),
     make_table(
         [
             ["Step", "Task", "Detail"],
             ["1–3", "normalise",
-             "process_events_details → normalize_json_column → drop_cattle_prefix."],
+             "process_events_details → normalize_json_column → drop_column_prefix."],
             ["4", "map_columns",
-             "Retain date, # cattle in Zone 1 mobile boma, # cattle in Zone 2/3 mobile boma, "
-             "# cattle in Zone 4, total_cattle_counted_from_all_zones. "
-             "Rename to zone_1, zone_2_3, zone_4, total_count."],
-            ["5", "persist_df",
+             "Rename '# cattle in Zone 1 mobile boma' → zone_1, "
+             "'# cattle in Zone 2/3 mobile boma' → zone_2_3, "
+             "'# cattle in Zone 4' → zone_4."],
+            ["5", "apply_arithmetic_operation_over_rows",
+             "Sum zone_1 + zone_2_3 + zone_4 into a new <b>total</b> column "
+             "(ecoscope_workflows_ext_mnc task)."],
+            ["6", "persist_df",
              "Save as <b>total_cattle_count_summary_table.csv</b>."],
+            ["7", "draw_table + persist_text",
+             "Save the rendered HTML with an <b>explicit</b> filename "
+             "<b>total_cattle_count_summary_table.html</b> "
+             "(filename_suffix: null — unlike the Logistics branches, this "
+             "one names its HTML output directly)."],
         ],
         [1.2*cm, 4.5*cm, W - 5.7*cm],
     ),
+    p("Widget: <b>'Total Cattle Count Summary'</b> (table)."),
     sp(6),
     h2("7.3  Branch 3 — Livestock Predation"),
-    p("Filter: event_type == <b>livestock_predation_rep</b>. "
-      "Produces two independent CSVs and one map."),
-    h3("7.3a  total_livestock_predation_summary_table.csv"),
+    p("Filter: event_type == <b>livestock_predation_rep</b>. This branch "
+      "builds two genuinely different output tables that share an "
+      "overlapping naming scheme — read carefully:"),
     make_table(
         [
-            ["Step", "Task", "Detail"],
-            ["1–3", "normalise",
-             "process_events_details → normalize_json_column → drop_predation_prefix."],
-            ["4", "map_columns",
-             "Retain id, date, event_type, geometry, Livestock Species, "
-             "Suspected Predator, Total livestock affected."],
-            ["5", "summarize_df",
-             "Group by date; count nunique(id) → livestock_predation_events. "
-             "reset_index: true."],
-            ["6", "add_totals_row", "Append a Total row."],
-            ["7", "persist_df",
-             "Save as <b>total_livestock_predation_summary_table.csv</b>."],
+            ["Output file", "Content", "Backs a widget?"],
+            ["total_livestock_predation_summary_table.csv",
+             "Daily nunique-id predation event counts. Columns: 'Date', "
+             "'Livestock Predation Events'.",
+             "No (CSV only)"],
+            ["livestock_predation_summary_table.html",
+             "The rendered HTML of that <b>same</b> daily-count table above "
+             "(not a different dataset).",
+             "Yes — 'Livestock Predation Summary'"],
+            ["livestock_predation_summary_table.csv",
+             "A <b>second, different</b> table: the detailed per-event "
+             "records (Livestock Species, Suspected Predator, Total "
+             "livestock affected), with nulls filled 'Unknown'.",
+             "No (CSV only, no HTML/widget)"],
+            ["livestock_predation_events.html/.png",
+             "Point map of predation incidents, coloured by species "
+             "(tab10 colormap).",
+             "Yes — 'Livestock Predation Events Map'"],
         ],
-        [1.2*cm, 4.5*cm, W - 5.7*cm],
+        [4.5*cm, 6*cm, W - 10.5*cm],
     ),
-    sp(4),
-    h3("7.3b  livestock_predation_summary_table.csv"),
-    make_table(
-        [
-            ["Step", "Task", "Detail"],
-            ["1", "map_columns",
-             "Retain date, Livestock Species, Suspected Predator, "
-             "Total livestock affected. Rename to livestock_species, "
-             "suspected_predator, total_livestock_affected."],
-            ["2", "replace_missing_with_label",
-             "Replace nulls in suspected_predator and livestock_species → 'Unknown'."],
-            ["3", "map_column_values",
-             "Map 'Other (specify in comments)' → 'Unknown' in suspected_predator."],
-            ["4", "convert_to_int",
-             "Cast total_livestock_affected to int (errors: coerce, fill_value: 0)."],
-            ["5", "persist_df",
-             "Save as <b>livestock_predation_summary_table.csv</b>."],
-        ],
-        [1.2*cm, 4.5*cm, W - 5.7*cm],
-    ),
-    sp(4),
-    p("Map pipeline: exclude_geom_outliers (z=3) → drop_null_geometry → "
-      "apply_color_map (Livestock Species, tab20 → colors) → "
-      "create_scatterplot_layer (legend: 'Livestock Species') → "
-      "combine with conservancy boundaries + parcels + text labels → "
-      "draw_map (fixed view state: lon 35.2093, lat -1.2578, zoom 9.75) → "
-      "persist as <b>livestock_predation_events.html</b> → html_to_png."),
+    note("The daily-count CSV (total_livestock_predation_summary_table.csv) "
+         "and the detailed per-event CSV (livestock_predation_summary_table.csv) "
+         "have similar but distinct names and different columns entirely. "
+         "The 'Livestock Predation Summary' dashboard widget is backed by the "
+         "HTML of the <b>daily-count</b> table, not the detailed per-event "
+         "table — the detailed CSV has no widget at all."),
     sp(6),
     h2("7.4  Branch 4 — Illegal Grazing"),
-    p("Filter: event_type == <b>illegal_grazing_rep</b>. No CSV summary produced."),
+    p("Filter: event_type == <b>illegal_grazing_rep</b>. Only a map is "
+      "produced — no summary CSV or table exists for this branch."),
     make_table(
         [
             ["Step", "Task", "Detail"],
             ["1–3", "normalise",
-             "process_events_details → normalize_json_column → drop_illegal_prefix."],
+             "process_events_details → normalize_json_column → drop_column_prefix."],
             ["4", "map_columns",
              "Retain date, event_type, geometry, Herd Zone, Landowner name, "
-             "action taken. (raise_if_not_found: false)"],
+             "action taken."],
+            ["5", "draw_map",
+             "Point map on the 3-layer livestock map style; persisted as "
+             "<b>illegal_grazing_map.html/.png</b>."],
         ],
         [1.2*cm, 4.5*cm, W - 5.7*cm],
     ),
-    p("Map pipeline: exclude_geom_outliers (z=3) → drop_null_geometry → "
-      "apply_color_map (event_type, tab20 → event_type_colors) → "
-      "create_scatterplot_layer (legend: 'Illegal grazing') → "
-      "combine with MNC styled layers + text labels (no parcels) → "
-      "draw_map (global_zoom_value) → persist as <b>illegal_grazing_map.html</b> → "
-      "html_to_png."),
+    p("Widget: <b>'Illegal Grazing Events Map'</b> (map)."),
     PageBreak(),
 ]
 
@@ -718,149 +765,149 @@ story += [
 story += [
     h1("8. Section 4 — Wildlife Report"),
     hr(),
-    p("Nine wildlife species sighting types and five wildlife incident types "
-      "are filtered from <b>events_temporal</b>. All sighting branches follow "
-      "the common normalisation pattern (Section 4.3) and produce a daily "
-      "event count CSV, a sighting map, and (for elephant and buffalo) "
-      "an additional herd-size map and bar chart. Lion, leopard, and cheetah "
-      "also produce an individual/pride summary CSV."),
+    p("This section covers five wildlife incident types (fetched together as "
+      "one branch) and eight wildlife sighting species (each its own branch). "
+      "All Wildlife maps use the 2-layer map style (parcels + conservancy "
+      "only) described in Section 3.2 — the grazing-zone layer used in "
+      "Livestock maps is intentionally absent here."),
     sp(6),
     h2("8.1  Common wildlife sighting pattern"),
-    p("Each sighting branch applies:"),
+    p("Every one of the 8 sighting branches follows the same skeleton:"),
     make_table(
         [
-            ["Step", "Task", "Detail"],
-            ["1", "filter_df",
-             "Filter events_temporal by event_type (op: equal, reset_index: true)."],
-            ["2–4", "normalise",
-             "process_events_details → normalize_json_column → drop_column_prefix."],
-            ["5", "map_columns",
-             "Drop audit columns (index, time, event_category, reported_by, "
-             "serial_number). Rename species-specific fields to snake_case."],
-            ["6", "replace_missing_with_label",
-             "Fill null herd/group composition field with 'Unspecified'."],
-            ["7", "convert_to_int",
-             "Cast numeric count fields to integer (errors: coerce, fill_value: 0)."],
-            ["8", "map_column_values",
-             "Standardise composition values to Title Case "
-             "(e.g. bachelor → Bachelor, mixed → Mixed)."],
-            ["9", "summarize_df",
-             "Group by date; count nunique(id) → no_of_events. "
-             "reset_index: true."],
-            ["10", "add_totals_row",
-             "Append a Total row."],
-            ["11", "persist_df",
-             "Save daily count CSV (see table below)."],
+            ["Step", "Detail"],
+            ["1", "filter_df events_temporal by event_type"],
+            ["2–4", "process_events_details → normalize_json_column → drop_column_prefix"],
+            ["5", "map_columns to rename species-specific fields to snake_case"],
+            ["6", "exclude_geom_outliers → drop_null_geometry"],
+            ["7", "draw_map on the shared parcels + conservancy (2-layer) map style"],
         ],
-        [1.2*cm, 4.5*cm, W - 5.7*cm],
+        [1.5*cm, W - 1.5*cm],
     ),
+    p("Branches differ in sophistication across three tiers, described in "
+      "the branch list below (Section 8.2) and detailed further in "
+      "Sections 8.3–8.4."),
     sp(6),
-    h2("8.2  Sighting branches and daily count CSV outputs"),
+    h2("8.2  Sighting branches and daily count / summary CSV outputs"),
     make_table(
         [
-            ["Branch", "event_type value", "CSV output", "Map filename"],
-            ["Elephant", "elephant_sighting_rep",
-             "total_elephants_events_recorded.csv",
-             "elephant_sightings_events.html/.png"],
-            ["Buffalo",  "buffalo_sighting_rep",
-             "total_buffalo_events_recorded.csv",
-             "buffalo_sightings_events.html/.png"],
-            ["Rhino",    "rhino_sighting_rep",
-             "total_rhino_events_recorded.csv",
-             "rhino_sightings_events.html/.png"],
-            ["Lion",     "lion_sighting_rep",
-             "total_lion_events_recorded.csv",
-             "lion_sightings_events.html/.png"],
-            ["Leopard",  "leopardsightingrep",
-             "total_leopard_events_recorded.csv",
-             "leopard_sightings_events.html/.png"],
-            ["Cheetah",  "cheetah_sighting_rep",
-             "total_cheetah_events_recorded.csv",
-             "cheetah_sightings_events.html/.png"],
-            ["Giraffe",  "giraffe_sighting",
-             "— (no CSV)",
-             "giraffe_sightings_events.html/.png"],
-            ["Hartebeest","hartebeest_sighting",
-             "— (no CSV)",
-             "hartebeest_sightings_events.html/.png"],
+            ["Species", "event_type value", "Tier"],
+            ["Elephant",   "elephant_sighting_rep", "Full (herd composition + herd size)"],
+            ["Buffalo",    "buffalo_sighting_rep",  "Full (herd composition + herd size)"],
+            ["Lion",       "lion_sighting_rep",     "Mid (pride, map + summary)"],
+            ["Leopard",    "leopardsightingrep",    "Mid — NOTE: event_type has no underscores"],
+            ["Cheetah",    "cheetah_sighting_rep",  "Mid (map + summary)"],
+            ["Giraffe",    "giraffe_sighting",      "Simplest — NOTE: no '_rep' suffix"],
+            ["Rhino",      "rhino_sighting_rep",    "Simplest (map + summary)"],
+            ["Hartebeest", "hartebeest_sighting",   "Simplest — NOTE: no '_rep' suffix"],
         ],
-        [2*cm, 3.5*cm, 4.5*cm, W - 10*cm],
+        [3*cm, 5*cm, W - 8*cm],
     ),
-    note("Giraffe and hartebeest branches produce only a sighting map — no daily "
-         "count CSV is persisted for these two species."),
+    note("Leopard's event_type is written verbatim as 'leopardsightingrep' "
+         "(no underscores at all), while Giraffe and Hartebeest use "
+         "'giraffe_sighting' / 'hartebeest_sighting' (underscored, but "
+         "missing the '_rep' suffix that every other species carries). "
+         "These are exact values from the spec, not typos to correct."),
     sp(6),
     h2("8.3  Individual / pride summary CSVs"),
-    p("Lion, leopard, and cheetah produce an additional summary grouped by a "
-      "categorical identifier:"),
     make_table(
         [
-            ["Branch", "Group-by column", "CSV output"],
-            ["Lion",    "pride",      "individual_lions_summary.csv — sighting count per pride"],
-            ["Leopard", "(individual identifier)", "individual_leopard_summary.csv"],
-            ["Cheetah", "(individual identifier)", "individual_cheetah_summary.csv"],
+            ["Species", "Outputs (CSV + HTML)", "Widgets"],
+            ["Elephant",
+             "elephant_herd_size_bar_chart.html/.png, elephant_herd_types_map.html/.png, "
+             "elephant_sightings_events.html/.png, overall_elephant_summary_table.csv + .html",
+             "Elephant Herd Size Map, Elephant Herd Composition Map, "
+             "Elephant Herd Size Distribution, Elephant Herd Composition Summary"],
+            ["Buffalo",
+             "buffalo_herd_size_bar_chart.html/.png, buffalo_herd_types_map.html/.png, "
+             "buffalo_sightings_events.html/.png, overall_buffalo_summary_table.csv + .html",
+             "Buffalo Herd Size Map, Buffalo Herd Composition Map, "
+             "Buffalo Herd Size Distribution, Buffalo Herd Composition Summary"],
+            ["Lion",
+             "lion_pride_sightings_map.html/.png, overall_lion_summary_table.csv + .html",
+             "Lion Sightings Map, Lion Sightings Summary"],
+            ["Leopard",
+             "leopard_sightings_map.html/.png, overall_leopard_summary_table.csv + .html",
+             "Leopard Sightings Map, Leopard Sightings Summary"],
+            ["Cheetah",
+             "cheetah_sightings_map.html/.png, overall_cheetah_summary_table.csv + .html",
+             "Cheetah Sightings Map, Cheetah Sightings Summary"],
+            ["Giraffe",
+             "giraffe_sightings_map.html/.png, overall_giraffe_summary_table.csv + .html",
+             "Giraffe Sightings Map, Giraffe Sightings Summary"],
+            ["Rhino",
+             "rhino_sightings_map.html/.png, overall_rhino_summary_table.csv + .html",
+             "Rhino Sightings Map, Rhino Sightings Summary"],
+            ["Hartebeest",
+             "hartebeest_sightings_map.html/.png, overall_hart_summary_table.csv + .html",
+             "Hartebeest Sightings Map, Hartebeest Sightings Summary"],
         ],
-        [2*cm, 4*cm, W - 6*cm],
+        [2.2*cm, 8*cm, W - 10.2*cm],
     ),
+    note("Hartebeest's summary CSV/HTML filenames use the abbreviation "
+         "'hart' — <b>overall_hart_summary_table.csv/.html</b> — not "
+         "'hartebeest'. This is inconsistent with the map filename "
+         "(hartebeest_sightings_map.html) and with the widget titles "
+         "('Hartebeest Sightings Map/Summary'), but is the exact filename "
+         "produced by the spec."),
     sp(6),
-    h2("8.4  Sighting maps (all species)"),
-    p("Each sighting map follows the same pipeline: "
-      "exclude_geom_outliers (z=3) → drop_null_geometry → "
-      "apply_color_map (herd_composition or equivalent field, tab20 → colors) → "
-      "create_scatterplot_layer → combine with conservancy boundaries + "
-      "parcels + text labels → draw_map (global_zoom_value, max_zoom: 15) → "
-      "persist HTML → html_to_png (scale: 2.0, wait: 40 s)."),
+    h2("8.4  Sighting maps"),
+    p("Elephant and Buffalo (full tier): herd_composition is mapped to "
+      "Bachelor / Female+Calf / Mixed / Unspecified and drives the colour of "
+      "the herd-composition map (elephant_sightings_events / "
+      "buffalo_sightings_events); herd_size is binned (equal-interval, "
+      "k = 5) and drives a bar chart (*_herd_size_bar_chart) plus a separate "
+      "clustered 'herd size' bubble map (*_herd_types_map)."),
+    p("Lion, Leopard, Cheetah (mid tier): a single point map coloured by "
+      "pride (Lion) or individuals present (Leopard, Cheetah), plus a single "
+      "aggregate summary table — no bar chart or bubble map."),
+    p("Giraffe, Rhino, Hartebeest (simplest tier): a fixed-colour point map "
+      "with no attribute breakdown; the summary table is a plain daily "
+      "observation count."),
     sp(6),
-    h2("8.5  Elephant and buffalo herd-size map and bar chart"),
-    p("In addition to the standard sighting map, elephant and buffalo each produce:"),
+    h2("8.5  Elephant/buffalo herd-size map and bar chart"),
     make_table(
         [
-            ["Output", "Task", "Detail"],
+            ["Output", "Detail"],
             ["Herd-size bar chart",
-             "draw_bar_chart",
-             "bin_columns (7 bins, suffix: bins) → categorize_bins → "
-             "draw_bar_chart (category: herd_sizebins, agg: count(id), "
-             "marker_color: lightsteelblue) → persist HTML → html_to_png."],
-            ["Herd-size map",
-             "draw_map",
-             "drop_null_values → exclude_geom_outliers → drop_null_geometry → "
-             "clean_dataframe_index → apply_color_map (herd_sizebins_sort, Blues) → "
-             "create_scatterplot_layer (get_radius: herd_size, radius_units: pixels, "
-             "radius_scale: 0.43) → combine with conservancy boundaries + "
-             "parcels + text labels → draw_map → persist HTML → html_to_png."],
+             "herd_size binned (equal-interval, k = 5) → draw_bar_chart → "
+             "persist HTML → html_to_png. Files: elephant_herd_size_bar_chart / "
+             "buffalo_herd_size_bar_chart (.html/.png)."],
+            ["Herd-size bubble map",
+             "A clustered scatterplot layer sized by herd_size, combined "
+             "with the 2-layer conservancy+parcels map style → draw_map → "
+             "persist HTML → html_to_png. Files: elephant_herd_types_map / "
+             "buffalo_herd_types_map (.html/.png)."],
+            ["Herd-composition map",
+             "A separate point map coloured by herd_composition. Files: "
+             "elephant_sightings_events / buffalo_sightings_events (.html/.png)."],
         ],
-        [3*cm, 2.5*cm, W - 5.5*cm],
-    ),
-    make_table(
-        [
-            ["Species", "Bar chart filename", "Herd-size map filename"],
-            ["Elephant", "elephant_herd_size_bar_chart.html/.png",
-             "elephant_herd_types_map.html/.png"],
-            ["Buffalo",  "buffalo_herd_size_bar_chart.html/.png",
-             "buffalo_herd_types_map.html/.png"],
-        ],
-        [2.5*cm, 5*cm, W - 7.5*cm],
+        [3.5*cm, W - 3.5*cm],
     ),
     sp(6),
     h2("8.6  Wildlife incidents"),
-    p("Task: <b>filter_row_values</b> on events_temporal for event types: "
-      "snare_rep, fire_rep, wildlife_injury_rep, wildlife_treatment_rep, "
-      "wildlife_carcass_rep. Three CSV outputs are produced:"),
+    p("Filter: event_type in {snare_rep, fire_rep, wildlife_injury_rep, "
+      "wildlife_treatment_rep, wildlife_carcass_rep}. Raw records are "
+      "persisted, a categorical summary and a daily-count table are built, "
+      "and a point map coloured by event type is drawn using the "
+      "<b>ecoscope_workflows_ext_big_life</b> draw_map task — functionally "
+      "equivalent to the custom draw_map task used by Livestock, but a "
+      "different implementation module."),
     make_table(
         [
-            ["CSV filename", "Description"],
+            ["Output file", "Description", "Widget"],
             ["wildlife_events_recorded.csv",
-             "Summary of wildlife incident event counts"],
+             "Raw normalised wildlife incident records.", "None (CSV only)"],
             ["wildlife_incidents_summary_table.csv",
-             "Incident counts broken down by event type"],
+             "Categorical incident summary by event type.", "None (CSV only)"],
             ["wildlife_incidents_recorded_by_date.csv",
-             "Incident counts grouped by date"],
+             "Daily incident counts.", "None (CSV only)"],
+            ["wildlife_incidents_map.html/.png",
+             "Point map of incident locations, coloured by event type.",
+             "'Wildlife Incident Map'"],
         ],
-        [5.5*cm, W - 5.5*cm],
+        [5*cm, 6.5*cm, W - 11.5*cm],
     ),
-    p("A map of all wildlife incident locations is also produced: "
-      "exclude_geom_outliers → drop_null_geometry → apply_color_map → "
-      "create_scatterplot_layer → draw_map → persist as "
-      "<b>wildlife_incidents_map.html/.png</b>."),
     PageBreak(),
 ]
 
@@ -870,158 +917,170 @@ story += [
 story += [
     h1("9. Section 5 — Patrol Report"),
     hr(),
-    p("The patrol section derives trajectory data from <b>patrol_info</b> events "
-      "in events_temporal, rather than from a direct patrol observation fetch. "
-      "It produces event count summaries, patrol purpose statistics, trajectory "
-      "files, patrol effort CSVs, three trajectory maps, a patrol coverage grid "
-      "map, and a patrol occupancy table."),
+    p("The patrol section derives trajectory data from <b>patrol_info</b> "
+      "events in events_temporal, then fetches full patrol records and GPS "
+      "observations from EarthRanger. It produces event counts, a patrol "
+      "purpose summary, three mode-specific coverage maps, an overall "
+      "coverage map, per-mode and per-ranger effort summaries, and a "
+      "conservancy patrol occupancy table. Section 9.1 below also covers the "
+      "cross-section 'Events Overview' outputs, which sit alongside the "
+      "patrol-specific pipeline but are not themselves patrol data."),
     sp(6),
-    h2("9.1  Event counts (all event types)"),
-    p("Before the patrol-specific pipeline, two cross-section event count tables "
-      "are produced from the filtered events_temporal (excluding "
-      "distancecountwildlife_rep, distancecountpatrol_rep, airstrip_operations, "
-      "and silence_source_rep):"),
+    h2("9.1  Event counts (Events Overview)"),
+    p("Before the patrol-specific pipeline, a cross-section events overview "
+      "is built from events_temporal with <b>distancecountwildlife_rep</b>, "
+      "<b>distancecountpatrol_rep</b>, and <b>airstrip_operations</b> "
+      "excluded (exclude_row_values):"),
     make_table(
         [
             ["CSV filename", "Group-by", "Description"],
             ["total_events_recorded_by_date.csv",
-             "date", "Unique event count per date with a Total row"],
+             "date", "Unique event count per date"],
             ["total_events_recorded_by_type.csv",
              "date + event_type", "Unique event count per date per event type"],
         ],
-        [5*cm, 2.5*cm, W - 7.5*cm],
+        [5.5*cm, 3*cm, W - 8.5*cm],
     ),
-    p("A bar chart of total events is also drawn and saved as "
-      "<b>total_events_recorded.html/.png</b>."),
+    p("A line chart of total events per day is also drawn and saved as "
+      "<b>total_events_recorded.html/.png</b>. Widget: 'Total Events "
+      "Recorded' (plot)."),
     sp(6),
     h2("9.2  Patrol purpose summary"),
-    p("Task: filter events_temporal for event_type == <b>patrol_info</b>. "
-      "The event_details JSON is normalised (without process_events_details — "
-      "raw key names are used) and columns are renamed:"),
+    p("Filter: events_temporal for event_type == <b>patrol_info</b>. "
+      "Records are processed/normalised and the raw filtered records are "
+      "persisted as <b>patrol_events.csv</b> (no widget). The events are "
+      "then summarised by <b>patrol_purpose</b>:"),
     make_table(
         [
-            ["Raw key", "Renamed to"],
-            ["event_details__patrolinfomation_participants", "participants"],
-            ["event_details__patrolinfomation_patrolpurpose", "purpose"],
-            ["event_details__patrolinfomation_personwhoauthorised", "authorized_by"],
-            ["event_details__patrolinfomation_transporttype", "transport_type"],
-            ["patrols", "patrol_id"],
+            ["Output file", "Description", "Widget"],
+            ["patrol_events.csv",
+             "Raw normalised patrol_info event records.", "None (CSV only)"],
+            ["patrol_purpose_summary.csv",
+             "Patrol counts summarised by patrol_purpose.", "None (CSV only)"],
+            ["patrol_purpose_summary_table.html",
+             "Rendered HTML of the purpose summary.",
+             "'Patrol Purpose Summary'"],
         ],
-        [7*cm, W - 7*cm],
+        [5.5*cm, 6.5*cm, W - 12*cm],
     ),
-    p("The purpose summary table groups by <b>purpose</b> and aggregates "
-      "nunique(id) → no_of_patrols and sum(dist_meters, m→km) → distance_km. "
-      "Saved as <b>patrol_purpose_summary.csv</b> (with a Total row)."),
     sp(6),
     h2("9.3  Patrol observations and relocations"),
     make_table(
         [
             ["Step", "Task", "Detail"],
-            ["1", "filter_null_patrols",
-             "Remove rows with null patrol_id."],
-            ["2", "replace_missing_with_label",
-             "Fill null transport_type values with 'unspecified'."],
-            ["3", "explode_multiple_columns",
-             "Explode patrol_id and participants lists into rows."],
-            ["4", "get_patrol_values",
-             "Fetch full patrol records from EarthRanger by patrol_id "
-             "(batch_size: 15)."],
-            ["5", "custom_get_patrol_observations_from_patrols_df",
-             "Fetch GPS observations for each patrol "
-             "(include_patrol_details: true, raise_on_empty: true, "
-             "sub_page_size: 150)."],
-            ["6", "merge_dataframes",
-             "Left-join observations with patrol info on patrol_id."],
-            ["7", "process_relocations",
-             "Convert observations to relocations. Columns retained include: "
-             "patrol_id, patrol_title, patrol_serial_number, patrol_start/end_time, "
-             "patrol_type, patrol_status, patrol_subject, patrol_type__value, "
-             "participants, purpose, transport_type. "
-             "Junk coordinates filtered: (180,90), (0,0), (1,1)."],
-            ["8", "persist_df",
-             "Save as <b>patrol_relocations.geoparquet</b>."],
+            ["1", "explode_multiple_columns",
+             "Explode patrol_id (and participant) lists into rows."],
+            ["2", "get_patrol_values",
+             "Fetch full patrol records from EarthRanger by patrol_id."],
+            ["3", "get patrol observations",
+             "Fetch GPS observations for each patrol."],
+            ["4", "merge / explode participants",
+             "Merge observations with patrol info; explode participants."],
+            ["5", "process_relocations",
+             "Convert observations to relocations."],
+            ["6", "persist_df",
+             "Save the raw, pre-mode-split relocation points as "
+             "<b>patrol_relocations.geoparquet</b>."],
         ],
         [1.2*cm, 4.5*cm, W - 5.7*cm],
     ),
     sp(6),
     h2("9.4  Trajectory building"),
-    p("Relocations are filtered into three transport type sub-groups and "
-      "independently converted to trajectories:"),
+    p("Relocations are split by <b>transport_type</b> into Foot, Vehicle, "
+      "and Motorbike sub-groups, each independently converted to "
+      "trajectories with mode-specific segment filters. Foot patrols use "
+      "much tighter speed/time thresholds than vehicle or motorbike "
+      "patrols, reflecting the different realistic travel speeds:"),
     make_table(
         [
-            ["Sub-group", "filter value", "Trajectory segment filter"],
-            ["Foot patrols",    "foot",       "max_length: 5 000 m, max_time: 14 400 s, "
-                                              "speed: 0.5–9 km/h"],
-            ["Vehicle patrols", "vehicle",    "max_length: 5 000 m, max_time: 18 000 s, "
-                                              "speed: 10–100 km/h"],
-            ["Motorbike patrols","motorbike",  "max_length: 5 000 m, max_time: 18 000 s, "
-                                              "speed: 5–120 km/h"],
+            ["Sub-group", "transport_type filter", "Segment filter characteristics"],
+            ["Foot patrols",     "Foot",      "Tight speed/time thresholds appropriate to walking pace"],
+            ["Vehicle patrols",  "Vehicle",   "Wider speed/time thresholds appropriate to vehicle travel"],
+            ["Motorbike patrols","Motorbike", "Wider speed/time thresholds appropriate to motorbike travel"],
         ],
-        [3*cm, 2.5*cm, W - 5.5*cm],
+        [3.5*cm, 4*cm, W - 7.5*cm],
     ),
-    note("Each sub-group runs relocations_to_trajectory independently, producing "
-         "separate trajectory DataFrames. A combined trajectory DataFrame is also "
-         "assembled (rename_combined_trajs) for the patrol coverage analysis."),
     sp(6),
     h2("9.5  Patrol effort CSVs"),
-    p("Each patrol type produces a metrics summary table "
-      "(patrol_type_value, no_of_patrols, distance_km, duration_hrs, average_speed) "
-      "with a Total row:"),
     make_table(
         [
-            ["CSV filename", "Source"],
-            ["foot_patrol_efforts.csv",       "foot patrol trajectories"],
-            ["vehicle_patrol_efforts.csv",    "vehicle patrol trajectories"],
-            ["motorbike_patrol_efforts.csv",  "motorbike patrol trajectories"],
-            ["overall_patrol_efforts.csv",    "combined trajectories — all patrol types together"],
+            ["CSV filename", "Group-by", "Columns"],
+            ["foot_patrol_efforts.csv",      "patrol_type_value",
+             "no_of_patrols, distance_km, duration_hrs, average_speed"],
+            ["vehicle_patrol_efforts.csv",   "patrol_type_value",
+             "no_of_patrols, distance_km, duration_hrs, average_speed"],
+            ["motorbike_patrol_efforts.csv", "patrol_type_value",
+             "no_of_patrols, distance_km, duration_hrs, average_speed"],
+            ["overall_patrol_efforts.csv",   "participants (i.e. per-ranger)",
+             "number_of_patrols, distance_km, duration_hours (no average_speed "
+             "column — a different shape from the three per-mode tables above)"],
         ],
-        [5*cm, W - 5*cm],
+        [5*cm, 4*cm, W - 9*cm],
     ),
+    note("overall_patrol_efforts.csv is <b>not</b> simply the three per-mode "
+         "tables concatenated — it re-summarises the combined trajectories "
+         "grouped by <b>participants</b> (ranger), producing a per-ranger "
+         "effort breakdown rather than a per-patrol-type one."),
     sp(6),
     h2("9.6  Patrol trajectory maps"),
-    p("Three GeoJSON-based trajectory maps are produced using "
-      "<b>create_geojson_layer</b>. Each map: apply_color_map (patrol_type_value, "
-      "tab20) → filter_columns → gdf_to_geojson → create_geojson_layer → "
-      "combine with conservancy boundaries + parcels + text labels → draw_map → "
-      "rewrite_file_urls_for_screenshots → persist HTML → html_to_png."),
+    p("Each mode produces its own coverage grid and map: build a 1 km grid "
+      "over the conservancy boundary, classify unique patrol visits per cell "
+      "(equal-interval, k = 5), colour with RdYlGn, and render via draw_map:"),
     make_table(
         [
-            ["Map", "GeoJSON filename", "HTML filename"],
-            ["Foot patrols",    "foot_patrol_trajectories.geojson",
-             "foot_patrols_map.html/.png"],
-            ["Vehicle patrols", "vehicle_patrol_trajectories.geojson",
-             "vehicle_patrols_map.html/.png"],
-            ["Motorbike patrols","motor_patrol_trajectories.geojson",
-             "motorbike_patrols_map.html/.png"],
+            ["Mode", "Effort CSV", "Map filename", "Widget"],
+            ["Foot",      "foot_patrol_efforts.csv",
+             "foot_patrol_map.html/.png", "Foot Patrol Coverage Map"],
+            ["Vehicle",   "vehicle_patrol_efforts.csv",
+             "vehicle_patrol_map.html/.png", "Vehicle Patrol Coverage Map"],
+            ["Motorbike", "motorbike_patrol_efforts.csv",
+             "motor_patrol_map.html/.png", "Motorbike Patrol Coverage Map"],
         ],
-        [3*cm, 4.5*cm, W - 7.5*cm],
+        [2.5*cm, 4.5*cm, 4.5*cm, W - 11.5*cm],
     ),
+    note("The motorbike map's <b>filename</b> uses the abbreviation 'motor' "
+         "— <b>motor_patrol_map.html/.png</b> — while its <b>widget title</b> "
+         "reads 'Motorbike Patrol Coverage Map' in full. This filename/title "
+         "mismatch is exact-as-specified, not an error to fix in this guide."),
     sp(6),
-    h2("9.7  Patrol coverage map and occupancy"),
+    h2("9.7  Overall patrol coverage map and occupancy"),
+    p("Foot, vehicle, and motorbike trajectories are concatenated and a "
+      "combined coverage grid/map is built the same way as the per-mode "
+      "maps. This section produces two <b>distinct</b> kinds of output — a "
+      "visual coverage map and a numeric occupancy table — which should not "
+      "be conflated:"),
     make_table(
         [
-            ["Step", "Task", "Detail"],
-            ["1", "create_patrol_coverage_grid",
-             "Build a 1 000 m grid and count unique patrol visits per cell "
-             "from the combined trajectories."],
-            ["2", "apply_classification",
-             "Classify unique_patrol_count into 5 equal-interval bins "
-             "→ density_bins (label_ranges: false, label_decimals: 1)."],
-            ["3", "apply_color_map",
-             "Apply RdYlGn_r colormap to density_bins → density_colors."],
-            ["4", "create_geojson_layer + draw_map",
-             "Render grid as a filled polygon layer → draw_map → "
-             "persist as <b>patrol_coverage_map.html/.png</b>."],
-            ["5", "compute_occupancy",
-             "Compute occupancy percentage of the conservancy area covered "
-             "by patrol grid cells (crs: epsg:4326)."],
-            ["6", "round_values",
-             "Round occupancy_percentage to 2 decimal places."],
-            ["7", "persist_df",
-             "Save as <b>patrol_coverage.csv</b>."],
+            ["Output file", "Nature", "Widget"],
+            ["overall_patrol_map.html/.png",
+             "The overall coverage MAP (visual) — combined foot+vehicle+motor "
+             "coverage grid rendered spatially. This is the only 'overall "
+             "coverage map' output in the workflow.",
+             "'Overall Patrol Coverage Map'"],
+            ["patrol_trajectories.geoparquet",
+             "Despite the task name ('Persist combined trajectories data') "
+             "and the filename, this file actually persists the "
+             "<b>reprojected overall coverage grid</b> (density cells), "
+             "not raw trajectory line geometries. Confirmed against the "
+             "spec: it is written from the same reprojected grid DataFrame "
+             "used to build overall_patrol_map.",
+             "None (file only)"],
+            ["overall_patrol_efforts.csv + overall_patrol_efforts_table.html",
+             "Per-ranger effort summary (see Section 9.5).",
+             "'Overall Patrol Efforts'"],
+            ["patrol_coverage.csv + patrol_coverage_table.html",
+             "Conservancy occupancy percentage from compute_patrol_occupancy "
+             "— a plain numeric TABLE, not a map.",
+             "'Conservancy Patrol Occupancy'"],
         ],
-        [1.2*cm, 4.5*cm, W - 5.7*cm],
+        [5*cm, 7*cm, W - 12*cm],
     ),
+    note("There is no separate 'patrol coverage map' distinct from a "
+         "'patrol coverage table' the way earlier documentation implied. "
+         "The visual coverage-map role is filled entirely by "
+         "<b>overall_patrol_map.html</b>; patrol_coverage_table.html is a "
+         "plain occupancy-percentage table widget with no spatial rendering "
+         "at all."),
     PageBreak(),
 ]
 
@@ -1031,13 +1090,17 @@ story += [
 story += [
     h1("10. Report Generation"),
     hr(),
-    p("The workflow concludes by generating a populated Word report using "
-      "<b>generate_mnc_report</b> (from ecoscope-workflows-ext-mnc)."),
+    p("The workflow concludes with two final-assembly tasks: a Word report "
+      "and a results dashboard."),
+    sp(6),
+    h2("10.1  Word report"),
     make_table(
         [
             ["Parameter", "Value"],
-            ["Task",           "generate_mnc_report"],
-            ["template_path",  "mara_north_event_template.docx (fetched from Dropbox)"],
+            ["Task id",        "generate_overall_report"],
+            ["Task ref",       "generate_mnc_report"],
+            ["template_path",  "mara_north_event_template.docx, fetched by "
+                                "fetch_mnc_template (Dropbox)"],
             ["output_dir",     "ECOSCOPE_WORKFLOWS_RESULTS"],
             ["generated_by",   "Ecoscope"],
             ["validate_images","true"],
@@ -1046,13 +1109,55 @@ story += [
         ],
         [5*cm, W - 5*cm],
     ),
-    note("The generate_mnc_report task auto-discovers PNG outputs in "
-         "ECOSCOPE_WORKFLOWS_RESULTS and populates the template placeholders. "
-         "With validate_images: true, the task will raise if expected PNG files "
-         "are missing."),
+    note("Unlike the dashboard's gather_dashboard task, generate_overall_report's "
+         "partial does <b>not</b> enumerate any explicit list of images, tables, "
+         "or sections in spec.yaml. The order and content of the assembled "
+         "document is driven entirely by the structure of the Word template "
+         "itself (mara_north_event_template.docx) and whatever "
+         "generate_mnc_report's implementation scans from output_dir at run "
+         "time — it is <b>not</b> something declared or orderable in "
+         "spec.yaml. This guide does not assert a section order for the "
+         "docx because none is specified."),
     sp(6),
-    p("A <b>gather_dashboard</b> task also runs at the end, packaging the "
-      "workflow details, time range, and groupers. The widgets list is empty."),
+    h2("10.2  Dashboard"),
+    p("Task id <b>mnc_events_dashboard</b>, task ref <b>gather_dashboard</b>, "
+      "built from workflow_details, time_range, and groupers plus an "
+      "explicit ordered <b>widgets:</b> list of 44 widgets, grouped (by "
+      "spec comments) in this exact order:"),
+    make_table(
+        [
+            ["Group", "Count", "Widgets"],
+            ["Weather", "7",
+             "Precipitation, Temperature, Wind Speed, Wind Gusts, Soil "
+             "Temperature, Relative Humidity, Atmospheric Pressure"],
+            ["Logistics", "3",
+             "Balloon Landing Summary, Airstrip Operations Summary, "
+             "Airstrip Maintenance Summary"],
+            ["Livestock", "5",
+             "Mobile Boma Movement Map, Livestock Predation Events Map, "
+             "Illegal Grazing Events Map, Total Cattle Count Summary, "
+             "Livestock Predation Summary"],
+            ["Wildlife", "21",
+             "Wildlife Incident Map; Elephant Herd Size Map / Herd "
+             "Composition Map / Herd Size Distribution / Herd Composition "
+             "Summary; Buffalo (same 4); Lion Sightings Map / Summary; "
+             "Leopard Sightings Map / Summary; Cheetah Sightings Map / "
+             "Summary; Giraffe Sightings Map / Summary; Hartebeest "
+             "Sightings Map / Summary; Rhino Sightings Map / Summary"],
+            ["Patrol", "8",
+             "Foot / Vehicle / Motorbike / Overall Patrol Coverage Map, "
+             "Total Events Recorded, Patrol Purpose Summary, Overall "
+             "Patrol Efforts, Conservancy Patrol Occupancy"],
+        ],
+        [3*cm, 1.5*cm, W - 4.5*cm],
+    ),
+    note("No dashboard widget exists for: weather_summary_table, "
+         "wildlife_events_recorded.csv / wildlife_incidents_summary_table.csv / "
+         "wildlife_incidents_recorded_by_date.csv, "
+         "total_events_recorded_by_date.csv / total_events_recorded_by_type.csv, "
+         "patrol_events.csv, patrol_relocations.geoparquet, and "
+         "patrol_trajectories.geoparquet — these persist as downloadable "
+         "files only and never surface on the dashboard."),
     PageBreak(),
 ]
 
@@ -1068,9 +1173,9 @@ story += [
         [
             ["File", "Description"],
             ["weather_summary_table.csv",
-             "Daily aggregated weather: precipitation (sum), temperature (mean), "
-             "wind speed (mean), wind gusts (max), soil temperature (mean), "
-             "relative humidity (mean), atmospheric pressure (mean)"],
+             "Daily per-station summary: precipitation (sum), temperature "
+             "(mean), wind speed (mean), wind gusts (max), soil temperature "
+             "(mean), relative humidity (mean), atmospheric pressure (mean)"],
             ["precipitation_readings_over_time.html/.png",
              "Precipitation line chart per weather station"],
             ["temperature_readings_over_time.html/.png",
@@ -1086,21 +1191,24 @@ story += [
             ["atmospheric_pressure_readings_over_time.html/.png",
              "Atmospheric pressure line chart"],
         ],
-        [5.5*cm, W - 5.5*cm],
+        [6.5*cm, W - 6.5*cm],
     ),
     sp(6),
     h2("11.2  Logistics"),
     make_table(
         [
             ["File", "Description"],
-            ["balloon_landing_summary_table.csv",
-             "Passenger records by balloon company and lodge"],
-            ["airstrip_operations_summary_table.csv",
-             "Total clients per camp/lodge pivoted by arrival/departure"],
-            ["airstrip_maintenance_summary_table.csv",
+            ["balloon_landing_summary_table.csv (+ HTML)",
+             "Balloon company, lodging, and passenger records"],
+            ["airstrip_operations_summary_table.csv (+ HTML)",
+             "Client counts per camp/lodge, pivoted by arrival/departure"],
+            ["airstrip_maintenance_summary_table.csv (+ HTML)",
              "Dated log of airstrip maintenance activity types"],
+            ["— (none)",
+             "Airline complaints are fetched and normalised but produce no "
+             "output file or widget (see Section 6.4)"],
         ],
-        [5.5*cm, W - 5.5*cm],
+        [6.5*cm, W - 6.5*cm],
     ),
     sp(6),
     h2("11.3  Livestock"),
@@ -1108,123 +1216,121 @@ story += [
         [
             ["File", "Description"],
             ["mobile_boma_movement_summary_table.csv",
-             "Daily unique boma event count with a Total row"],
-            ["total_cattle_count_summary_table.csv",
-             "Cattle counts per zone (zone_1, zone_2_3, zone_4, total_count) per date"],
-            ["total_livestock_predation_summary_table.csv",
-             "Daily unique predation event count with a Total row"],
-            ["livestock_predation_summary_table.csv",
-             "Predation records by species, suspected predator, and total animals affected"],
+             "Daily unique boma event count"],
             ["boma_movement_map.html/.png",
-             "Mobile boma locations on MNC grazing zones and parcels, coloured by event type"],
+             "Mobile boma locations, 3-layer map (parcels + grazing zones + conservancy)"],
+            ["total_cattle_count_summary_table.csv (+ HTML)",
+             "Cattle counts per zone (zone_1, zone_2_3, zone_4) plus a "
+             "computed total column"],
+            ["total_livestock_predation_summary_table.csv",
+             "Daily unique predation event count"],
+            ["livestock_predation_summary_table.html",
+             "Rendered HTML of the daily predation count table (see 7.3)"],
+            ["livestock_predation_summary_table.csv",
+             "Separate detailed per-event predation table (species, "
+             "predator, total affected) — same filename stem as the HTML "
+             "above but a different dataset (see 7.3)"],
             ["livestock_predation_events.html/.png",
-             "Predation incident locations, coloured by livestock species"],
+             "Predation incident locations, coloured by species (tab10)"],
             ["illegal_grazing_map.html/.png",
-             "Illegal grazing incidents on MNC grazing zones, coloured by event type"],
+             "Illegal grazing incidents, 3-layer map (no summary CSV/table exists)"],
         ],
-        [5.5*cm, W - 5.5*cm],
+        [6.5*cm, W - 6.5*cm],
     ),
     sp(6),
     h2("11.4  Wildlife"),
     make_table(
         [
             ["File", "Description"],
-            ["total_elephants_events_recorded.csv",
-             "Daily elephant sighting count with Total row"],
-            ["total_buffalo_events_recorded.csv",
-             "Daily buffalo sighting count with Total row"],
-            ["total_rhino_events_recorded.csv",
-             "Daily rhino sighting count with Total row"],
-            ["total_lion_events_recorded.csv",
-             "Daily lion sighting count with Total row"],
-            ["total_leopard_events_recorded.csv",
-             "Daily leopard sighting count with Total row"],
-            ["total_cheetah_events_recorded.csv",
-             "Daily cheetah sighting count with Total row"],
-            ["individual_lions_summary.csv",
-             "Lion sighting count grouped by pride"],
-            ["individual_leopard_summary.csv",
-             "Leopard sighting count grouped by individual identifier"],
-            ["individual_cheetah_summary.csv",
-             "Cheetah sighting count grouped by individual identifier"],
             ["wildlife_events_recorded.csv",
-             "Overall wildlife incident event counts"],
+             "Raw wildlife incident records (snares, fires, carcasses, "
+             "injuries, veterinary treatments)"],
             ["wildlife_incidents_summary_table.csv",
              "Incident counts by event type"],
             ["wildlife_incidents_recorded_by_date.csv",
              "Incident counts by date"],
-            ["elephant_sightings_events.html/.png",
-             "Elephant sighting map, coloured by herd_composition (tab20)"],
-            ["elephant_herd_size_bar_chart.html/.png",
-             "Elephant group-size frequency bar chart"],
-            ["elephant_herd_types_map.html/.png",
-             "Elephant sighting map with points scaled by herd_size (Blues)"],
-            ["buffalo_sightings_events.html/.png",
-             "Buffalo sighting map, coloured by herd_composition"],
-            ["buffalo_herd_size_bar_chart.html/.png",
-             "Buffalo group-size frequency bar chart"],
-            ["buffalo_herd_types_map.html/.png",
-             "Buffalo sighting map with points scaled by herd_size"],
-            ["rhino_sightings_events.html/.png",
-             "Rhino sighting map"],
-            ["lion_sightings_events.html/.png",
-             "Lion sighting map, coloured by pride"],
-            ["leopard_sightings_events.html/.png",
-             "Leopard sighting map"],
-            ["cheetah_sightings_events.html/.png",
-             "Cheetah sighting map"],
-            ["giraffe_sightings_events.html/.png",
-             "Giraffe sighting map"],
-            ["hartebeest_sightings_events.html/.png",
-             "Hartebeest sighting map"],
             ["wildlife_incidents_map.html/.png",
-             "Wildlife incident locations map"],
+             "Wildlife incident locations map, coloured by event type"],
+            ["elephant_sightings_events.html/.png",
+             "Elephant herd-composition sightings map"],
+            ["elephant_herd_types_map.html/.png",
+             "Elephant herd-size bubble map"],
+            ["elephant_herd_size_bar_chart.html/.png",
+             "Elephant herd-size distribution bar chart (5 bins)"],
+            ["overall_elephant_summary_table.csv (+ HTML)",
+             "Elephant sightings summary by herd type"],
+            ["buffalo_sightings_events.html/.png",
+             "Buffalo herd-composition sightings map"],
+            ["buffalo_herd_types_map.html/.png",
+             "Buffalo herd-size bubble map"],
+            ["buffalo_herd_size_bar_chart.html/.png",
+             "Buffalo herd-size distribution bar chart (5 bins)"],
+            ["overall_buffalo_summary_table.csv (+ HTML)",
+             "Buffalo sightings summary by herd type"],
+            ["lion_pride_sightings_map.html/.png",
+             "Lion sightings map, coloured by pride"],
+            ["overall_lion_summary_table.csv (+ HTML)",
+             "Lion sightings summary by pride"],
+            ["leopard_sightings_map.html/.png",
+             "Leopard sightings map, coloured by individuals present"],
+            ["overall_leopard_summary_table.csv (+ HTML)",
+             "Leopard sightings summary"],
+            ["cheetah_sightings_map.html/.png",
+             "Cheetah sightings map, coloured by individuals present"],
+            ["overall_cheetah_summary_table.csv (+ HTML)",
+             "Cheetah sightings summary"],
+            ["giraffe_sightings_map.html/.png",
+             "Giraffe sightings map (fixed colour)"],
+            ["overall_giraffe_summary_table.csv (+ HTML)",
+             "Giraffe daily sightings summary"],
+            ["rhino_sightings_map.html/.png",
+             "Rhino sightings map (fixed colour)"],
+            ["overall_rhino_summary_table.csv (+ HTML)",
+             "Rhino daily sightings summary"],
+            ["hartebeest_sightings_map.html/.png",
+             "Hartebeest sightings map (fixed colour)"],
+            ["overall_hart_summary_table.csv (+ HTML)",
+             "Hartebeest daily sightings summary — NOTE filename uses "
+             "abbreviation 'hart', not 'hartebeest'"],
         ],
-        [5.5*cm, W - 5.5*cm],
+        [6.5*cm, W - 6.5*cm],
     ),
     sp(6),
     h2("11.5  Patrol"),
     make_table(
         [
             ["File", "Description"],
-            ["total_events_recorded_by_date.csv",
-             "Daily unique event count (all types, excl. 4 excluded types) with Total row"],
-            ["total_events_recorded_by_type.csv",
-             "Daily unique event count per event type"],
-            ["total_events_recorded.html/.png",
-             "Total events bar chart"],
-            ["patrol_purpose_summary.csv",
-             "Patrol count and distance by purpose with Total row"],
+            ["patrol_events.csv",
+             "Raw normalised patrol_info event records"],
+            ["patrol_purpose_summary.csv (+ HTML)",
+             "Patrol count and distance by purpose"],
             ["patrol_relocations.geoparquet",
-             "Cleaned GPS relocations for all patrol types"],
+             "Raw, pre-mode-split GPS relocations for all patrol types"],
             ["foot_patrol_efforts.csv",
-             "Foot patrol metrics (patrols, distance km, duration hrs, avg speed) by type"],
+             "Foot patrol metrics (patrols, distance, duration, avg speed) by patrol_type_value"],
+            ["foot_patrol_map.html/.png",
+             "Foot patrol coverage grid map (1 km cells, RdYlGn)"],
             ["vehicle_patrol_efforts.csv",
-             "Vehicle patrol metrics by type"],
+             "Vehicle patrol metrics by patrol_type_value"],
+            ["vehicle_patrol_map.html/.png",
+             "Vehicle patrol coverage grid map"],
             ["motorbike_patrol_efforts.csv",
-             "Motorbike patrol metrics by type"],
-            ["overall_patrol_efforts.csv",
-             "Combined patrol metrics across all types with Total row"],
-            ["foot_patrol_trajectories.geojson",
-             "Foot patrol trajectory segments with colour column"],
-            ["vehicle_patrol_trajectories.geojson",
-             "Vehicle patrol trajectory segments with colour column"],
-            ["motor_patrol_trajectories.geojson",
-             "Motorbike patrol trajectory segments with colour column"],
-            ["patrol_trajectories.geojson",
-             "Combined trajectory segments (all patrol types)"],
-            ["foot_patrols_map.html/.png",
-             "Foot patrol trajectories map, coloured by patrol type"],
-            ["vehicle_patrols_map.html/.png",
-             "Vehicle patrol trajectories map, coloured by patrol type"],
-            ["motorbike_patrols_map.html/.png",
-             "Motorbike patrol trajectories map, coloured by patrol type"],
-            ["patrol_coverage_map.html/.png",
-             "1 000 m patrol coverage grid, classified by visit count (RdYlGn_r)"],
-            ["patrol_coverage.csv",
-             "Patrol occupancy percentage per conservancy region"],
+             "Motorbike patrol metrics by patrol_type_value"],
+            ["motor_patrol_map.html/.png",
+             "Motorbike patrol coverage grid map — NOTE filename uses "
+             "'motor', widget title says 'Motorbike'"],
+            ["overall_patrol_map.html/.png",
+             "Combined (foot + vehicle + motorbike) patrol coverage grid map"],
+            ["patrol_trajectories.geoparquet",
+             "NOTE: despite the name, this is the reprojected overall "
+             "coverage GRID (density cells), not raw trajectory line "
+             "geometries — see Section 9.7"],
+            ["overall_patrol_efforts.csv (+ HTML)",
+             "Per-ranger (participants) summary of patrols, distance, and duration"],
+            ["patrol_coverage.csv (+ HTML)",
+             "Conservancy patrol occupancy percentage — a numeric table, not a map"],
         ],
-        [5.5*cm, W - 5.5*cm],
+        [6.5*cm, W - 6.5*cm],
     ),
     sp(6),
     h2("11.6  Report"),
@@ -1232,11 +1338,12 @@ story += [
         [
             ["File", "Description"],
             ["mara_north_event_template.docx",
-             "Word template downloaded from Dropbox (not an output — input)"],
+             "Word template downloaded from Dropbox (input, not an output)"],
             ["overall_report.docx",
-             "Populated Word report generated from the template"],
+             "Populated Word report; section order is template-driven, not "
+             "declared in spec.yaml (see Section 10.1)"],
         ],
-        [5.5*cm, W - 5.5*cm],
+        [6.5*cm, W - 6.5*cm],
     ),
     PageBreak(),
 ]
@@ -1248,9 +1355,8 @@ story += [
     h1("12. Workflow Execution Logic"),
     hr(),
     h2("12.1  Per-task skip conditions"),
-    p("This workflow does <b>not</b> use a global <b>task-instance-defaults</b> "
-      "block. Every task from event retrieval onwards carries its own explicit "
-      "skipif block:"),
+    p("This workflow declares a global <b>task-instance-defaults</b> block "
+      "applying the same skipif conditions to every task:"),
     make_table(
         [
             ["Condition", "Behaviour"],
@@ -1261,49 +1367,82 @@ story += [
         ],
         [5*cm, W - 5*cm],
     ),
-    note("Because skip conditions are per-task rather than global, each section "
-         "propagates skips independently. For example, if no balloon_landing events "
-         "are returned, only the balloon branch skips; all other sections continue."),
+    p("Most individual tasks additionally redeclare this same skipif block "
+      "explicitly. <b>Widget-creation tasks</b> (e.g. create_table_widget_single_view, "
+      "the map/plot widget builders) override the default with "
+      "<b>skipif.conditions: [never]</b>, so a placeholder widget always "
+      "renders on the dashboard even if the upstream branch that would feed "
+      "it was skipped for lack of data."),
+    note("Because skips propagate per-task rather than being suppressed "
+         "globally, each section's branches skip independently. For example, "
+         "if no balloon_landing events are returned, only the balloon branch "
+         "skips; all other Logistics/Livestock/Wildlife/Patrol branches "
+         "continue normally, and the corresponding widgets still render "
+         "(empty) due to the [never] override."),
     sp(6),
     h2("12.2  Two independent data sources"),
-    p("The workflow has two distinct entry points that run in parallel:"),
     make_table(
         [
-            ["Entry point", "Task", "Feeds sections"],
+            ["Entry point", "Task", "Feeds"],
             ["Weather observations",
-             "get_subjectgroup_observations (subject_group: ER2ER - From GMMF)",
+             "get_subjectgroup_observations (ER2ER - From GMMF)",
              "Section 1 — Weather only"],
             ["All event records",
              "get_events (event_types: [], fetch all)",
-             "Sections 2–5 — Logistics, Livestock, Wildlife, Patrol"],
+             "Sections 2–5 — Logistics, Livestock, Wildlife, Events "
+             "Overview, Patrol (each applies its own downstream filter)"],
         ],
-        [3.5*cm, 5*cm, W - 8.5*cm],
+        [3.5*cm, 6*cm, W - 9.5*cm],
     ),
     sp(6),
     h2("12.3  No mapvalues or fan-out"),
     p("This workflow processes all records as a single batch. There is no "
-      "<b>mapvalues</b>, <b>split_groups</b>, or <b>zip_groupbykey</b> directive — "
-      "every task runs exactly once per workflow execution."),
+      "<b>mapvalues</b>, <b>split_groups</b>, or <b>zip_groupbykey</b> "
+      "directive, and groupers is []; every task runs exactly once per "
+      "workflow execution."),
     sp(6),
     h2("12.4  GeoJSON trajectories and URL rewriting"),
-    p("Patrol trajectory maps use <b>create_geojson_layer</b> with an inline "
-      "GeoJSON data_url reference. Before HTML-to-PNG conversion, "
-      "<b>rewrite_file_urls_for_screenshots</b> replaces the file:// URL in the "
-      "rendered HTML with a locally-served path so the headless browser can load "
-      "the GeoJSON. All three patrol maps use <b>serve_local_files: true</b> in "
-      "their html_to_png config."),
+    p("Patrol trajectory / coverage maps that render vector overlays use a "
+      "geospatial layer referencing an on-disk file. Before HTML-to-PNG "
+      "conversion, a URL-rewriting step replaces the file:// reference in "
+      "the rendered HTML with a locally-served path so the headless browser "
+      "used for screenshotting can load the geometry."),
     sp(6),
     h2("12.5  HTML-to-PNG conversion settings"),
-    make_table(
-        [
-            ["Group", "device_scale_factor", "wait_for_timeout", "max_concurrent_pages"],
-            ["Weather charts (batch)",  "2.0", "15 ms",    "5"],
-            ["Livestock / wildlife maps","2.0", "40 000 ms","1"],
-            ["Elephant bar chart",      "2.0", "10 ms",    "1"],
-            ["Patrol maps",             "2.0", "40 000 ms","1"],
-        ],
-        [3.5*cm, 3*cm, 3*cm, W - 9.5*cm],
-    ),
+    p("Every HTML chart/map output in the workflow is converted to PNG via "
+      "html_to_png, with settings tuned per output type — fast, low-wait "
+      "conversion for simple charts, longer wait times for map renders that "
+      "need basemap tiles and vector layers to finish loading before the "
+      "screenshot is taken."),
+    sp(6),
+    h2("12.6  Known quirks (summary)"),
+    p("The following naming/behaviour discrepancies were identified while "
+      "auditing this spec and are called out individually in their "
+      "respective sections; they are collected here for quick reference:"),
+    bullet("<b>Airline complaints dead-end</b> (6.4): fetched and normalised "
+           "but no file or widget is ever produced."),
+    bullet("<b>Livestock predation dual naming</b> (7.3): "
+           "livestock_predation_summary_table.html backs the daily-count "
+           "widget, while the identically-stemmed "
+           "livestock_predation_summary_table.csv is a completely different, "
+           "detailed per-event dataset."),
+    bullet("<b>Hartebeest 'hart' abbreviation</b> (8.3): "
+           "overall_hart_summary_table.csv/.html, inconsistent with the map "
+           "filename and widget titles which say 'Hartebeest' in full."),
+    bullet("<b>Motorbike filename vs. widget title</b> (9.6): "
+           "motor_patrol_map.html/.png backs the 'Motorbike Patrol Coverage "
+           "Map' widget."),
+    bullet("<b>patrol_trajectories.geoparquet content mismatch</b> (9.7): "
+           "named and task-labelled as combined trajectories, but actually "
+           "persists the reprojected overall coverage grid (density cells)."),
+    bullet("<b>Non-underscored / short event_type values</b> (8.2): "
+           "leopardsightingrep (no underscores), giraffe_sighting and "
+           "hartebeest_sighting (no '_rep' suffix), unlike every other "
+           "sighting/incident event_type in the spec."),
+    bullet("<b>Report assembly order is template-driven</b> (10.1): "
+           "unlike the dashboard, spec.yaml declares no explicit section/"
+           "image list for the Word report — order comes entirely from "
+           "mara_north_event_template.docx."),
     PageBreak(),
 ]
 
@@ -1316,14 +1455,16 @@ story += [
     make_table(
         [
             ["Package", "Version pinned in spec.yaml"],
-            ["ecoscope-workflows-core",        "0.22.18.*"],
-            ["ecoscope-workflows-ext-ecoscope","0.22.18.*"],
-            ["ecoscope-workflows-ext-custom",  "0.0.45.*"],
-            ["ecoscope-workflows-ext-ste",     "0.0.19.*"],
-            ["ecoscope-workflows-ext-mep",     "0.0.14.*"],
-            ["ecoscope-workflows-ext-mnc",     "0.0.9.*"],
+            ["ecoscope-platform",                ">=2.15.0, <2.16.0"],
+            ["ecoscope-workflows-ext-custom",     "0.1.0rc14.*"],
+            ["ecoscope-workflows-ext-ste",        "0.0.0rc1.*"],
+            ["ecoscope-workflows-ext-wwf-virunga","0.0.0rc9.*"],
+            ["ecoscope-workflows-ext-big-life",   "1.0.1.*"],
+            ["ecoscope-workflows-ext-mnc",        "1.0.3.*"],
+            ["pydeck",                            "0.9.2"],
+            ["opentelemetry-sdk",                 ">=1.20.0,<2.0.0"],
         ],
-        [7*cm, W - 7*cm],
+        [8*cm, W - 8*cm],
     ),
 ]
 
