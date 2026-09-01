@@ -720,8 +720,8 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             client=er_client_name,
             time_range=time_range,
             raise_on_empty=False,
-            include_details=False,
-            include_subjectsource_details=False,
+            include_details=True,
+            include_subjectsource_details=True,
             subject_group_name="ER2ER - From GMMF",
             **(params.get("subject_observations") or {}),
         )

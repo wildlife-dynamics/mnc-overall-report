@@ -231,8 +231,8 @@ workflow:
       client: ${{ workflow.er_client_name.return }}
       time_range: ${{ workflow.time_range.return }}
       raise_on_empty: false
-      include_details: false
-      include_subjectsource_details: false
+      include_details: true
+      include_subjectsource_details: true
       subject_group_name: "ER2ER - From GMMF"
   
   # Extract precipitation data
