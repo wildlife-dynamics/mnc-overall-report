@@ -192,6 +192,7 @@ from ecoscope_workflows_ext_big_life.tasks.results import (
 from ecoscope_workflows_ext_mnc.tasks.transformation import (
     order_categorical_by_number as order_categorical_by_number,
 )
+from ecoscope_workflows_ext_ste.tasks.filter import filter_rows as filter_rows
 from ecoscope_workflows_ext_wwf_virunga.tasks.plot import (
     draw_bar_chart as draw_bar_chart_1,
 )
@@ -5050,6 +5051,30 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    positive_ele_values = (
+        task(filter_rows)
+        .validate()
+        .set_task_instance_id("positive_ele_values")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            column_name="herd_size",
+            op="gt",
+            value=0,
+            df=map_ele_herd,
+            reset_index=True,
+            **(params.get("positive_ele_values") or {}),
+        )
+        .call()
+    )
+
     apply_ele_bins = (
         task(apply_classification)
         .validate()
@@ -5064,7 +5089,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            df=map_ele_herd,
+            df=positive_ele_values,
             input_column_name="herd_size",
             output_column_name="herd_size_bins",
             label_options={"label_ranges": True, "label_decimals": 0},
@@ -5820,6 +5845,30 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    positive_buff_values = (
+        task(filter_rows)
+        .validate()
+        .set_task_instance_id("positive_buff_values")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            column_name="herd_size",
+            op="gt",
+            value=0,
+            df=map_buff_herd,
+            reset_index=True,
+            **(params.get("positive_buff_values") or {}),
+        )
+        .call()
+    )
+
     apply_buff_bins = (
         task(apply_classification)
         .validate()
@@ -5834,7 +5883,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            df=map_buff_herd,
+            df=positive_buff_values,
             input_column_name="herd_size",
             output_column_name="herd_size_bins",
             label_options={"label_ranges": True, "label_decimals": 0},
@@ -9816,6 +9865,33 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    rename_patrol_summary_display = (
+        task(map_columns)
+        .validate()
+        .set_task_instance_id("rename_patrol_summary_display")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            raise_if_not_found=True,
+            drop_columns=[],
+            retain_columns=[],
+            rename_columns={
+                "patrol_purpose": "Patrol Purpose",
+                "number_of_patrols": "Number of Patrols",
+            },
+            df=patrol_info_summary,
+            **(params.get("rename_patrol_summary_display") or {}),
+        )
+        .call()
+    )
+
     patrol_summary_table_html = (
         task(draw_table)
         .validate()
@@ -9830,7 +9906,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            dataframe=patrol_info_summary,
+            dataframe=rename_patrol_summary_display,
             columns=None,
             table_config={
                 "enable_sorting": True,
@@ -11877,6 +11953,35 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    rename_patrol_efforts_display = (
+        task(map_columns)
+        .validate()
+        .set_task_instance_id("rename_patrol_efforts_display")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            raise_if_not_found=True,
+            drop_columns=[],
+            retain_columns=[],
+            rename_columns={
+                "participants": "Participants",
+                "number_of_patrols": "Number of Patrols",
+                "distance_km": "Distance(Km)",
+                "duration_hours": "Duration(Hours)",
+            },
+            df=no_of_patrols_int,
+            **(params.get("rename_patrol_efforts_display") or {}),
+        )
+        .call()
+    )
+
     patrol_efforts_table_html = (
         task(draw_table)
         .validate()
@@ -11891,7 +11996,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            dataframe=no_of_patrols_int,
+            dataframe=rename_patrol_efforts_display,
             columns=None,
             table_config={
                 "enable_sorting": True,
@@ -12013,6 +12118,35 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    rename_occupancy_display = (
+        task(map_columns)
+        .validate()
+        .set_task_instance_id("rename_occupancy_display")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            raise_if_not_found=True,
+            drop_columns=[],
+            retain_columns=[],
+            rename_columns={
+                "conservancy_name": "Conservancy Name",
+                "conservancy_area_sqkm": "Conservancy Area(Km2)",
+                "patrolled_area_sqkm": "Patrolled Area(Km2)",
+                "occupancy_percentage": "Occupancy(%)",
+            },
+            df=compute_cons_occupancy,
+            **(params.get("rename_occupancy_display") or {}),
+        )
+        .call()
+    )
+
     occupancy_table_html = (
         task(draw_table)
         .validate()
@@ -12027,7 +12161,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            dataframe=compute_cons_occupancy,
+            dataframe=rename_occupancy_display,
             columns=None,
             table_config={
                 "enable_sorting": True,

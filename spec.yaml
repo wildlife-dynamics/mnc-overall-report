@@ -2435,11 +2435,21 @@ workflow:
       default: "Undefined"
       keep_unmapped: false
 
+  - name: Retain values greater than zero for elephants 
+    id: positive_ele_values 
+    task: ecoscope_workflows_ext_ste.tasks.filter.filter_rows
+    partial: 
+      column_name: herd_size 
+      op: gt
+      value: 0
+      df: ${{ workflow.map_ele_herd.return }}
+      reset_index: true 
+
   - name: Apply classification to herd size (bins) for elephants
     id: apply_ele_bins
     task: apply_classification
     partial: 
-      df: ${{ workflow.map_ele_herd.return }}
+      df: ${{ workflow.positive_ele_values.return }}
       input_column_name: "herd_size"
       output_column_name: "herd_size_bins"
       label_options: 
@@ -2820,11 +2830,21 @@ workflow:
       default: "Undefined"
       keep_unmapped: false
 
+  - name: Retain values greater than zero for buffalos
+    id: positive_buff_values 
+    task: ecoscope_workflows_ext_ste.tasks.filter.filter_rows
+    partial: 
+      column_name: herd_size 
+      op: gt
+      value: 0
+      df: ${{ workflow.map_buff_herd.return }}
+      reset_index: true 
+
   - name: Apply classification to herd size (bins) for buffalos
     id: apply_buff_bins
     task: apply_classification
     partial: 
-      df: ${{ workflow.map_buff_herd.return }}
+      df: ${{ workflow.positive_buff_values.return }}
       input_column_name: "herd_size"
       output_column_name: "herd_size_bins"
       label_options: 
@@ -4686,11 +4706,24 @@ workflow:
       filename: patrol_purpose_summary
       df: ${{ workflow.patrol_info_summary.return }}
 
+  - name: Rename patrol summary columns for display
+    id: rename_patrol_summary_display
+    task: map_columns
+    partial:
+      raise_if_not_found: true
+      drop_columns: []
+      retain_columns: []
+      rename_columns: {
+        "patrol_purpose":"Patrol Purpose",
+        "number_of_patrols":"Number of Patrols"
+      }
+      df: ${{ workflow.patrol_info_summary.return }}
+
   - name: Draw patrol purpose summary table
     id: patrol_summary_table_html
     task: draw_table
     partial:
-      dataframe: ${{ workflow.patrol_info_summary.return }}
+      dataframe: ${{ workflow.rename_patrol_summary_display.return }}
       columns: null
       table_config: {enable_sorting: true, enable_filtering: true, enable_download: false, hide_header: false}
       widget_id: "Patrol Purpose Summary"
@@ -5669,11 +5702,26 @@ workflow:
       df: ${{ workflow.no_of_patrols_int.return }}
       filename: overall_patrol_efforts
 
+  - name: Rename overall patrol efforts columns for display
+    id: rename_patrol_efforts_display
+    task: map_columns
+    partial:
+      raise_if_not_found: true
+      drop_columns: []
+      retain_columns: []
+      rename_columns: {
+        "participants":"Participants",
+        "number_of_patrols":"Number of Patrols",
+        "distance_km":"Distance(Km)",
+        "duration_hours":"Duration(Hours)"
+      }
+      df: ${{ workflow.no_of_patrols_int.return }}
+
   - name: Draw overall patrol efforts table
     id: patrol_efforts_table_html
     task: draw_table
     partial:
-      dataframe: ${{ workflow.no_of_patrols_int.return }}
+      dataframe: ${{ workflow.rename_patrol_efforts_display.return }}
       columns: null
       table_config: {enable_sorting: true, enable_filtering: true, enable_download: false, hide_header: false}
       widget_id: "Overall Patrol Efforts"
@@ -5716,11 +5764,26 @@ workflow:
       df: ${{ workflow.compute_cons_occupancy.return }}
       filename: patrol_coverage
 
+  - name: Rename patrol occupancy columns for display
+    id: rename_occupancy_display
+    task: map_columns
+    partial:
+      raise_if_not_found: true
+      drop_columns: []
+      retain_columns: []
+      rename_columns: {
+        "conservancy_name":"Conservancy Name",
+        "conservancy_area_sqkm":"Conservancy Area(Km2)",
+        "patrolled_area_sqkm":"Patrolled Area(Km2)",
+        "occupancy_percentage":"Occupancy(%)"
+      }
+      df: ${{ workflow.compute_cons_occupancy.return }}
+
   - name: Draw patrol occupancy table
     id: occupancy_table_html
     task: draw_table
     partial:
-      dataframe: ${{ workflow.compute_cons_occupancy.return }}
+      dataframe: ${{ workflow.rename_occupancy_display.return }}
       columns: null
       table_config: {enable_sorting: true, enable_filtering: true, enable_download: false, hide_header: false}
       widget_id: "Conservancy Patrol Occupancy"
