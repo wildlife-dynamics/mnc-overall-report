@@ -46,6 +46,7 @@ from ecoscope.platform.tasks.transformation import (
     apply_classification as apply_classification,
 )
 from ecoscope.platform.tasks.transformation import apply_color_map as apply_color_map
+from ecoscope.platform.tasks.transformation import assign_value as assign_value
 from ecoscope.platform.tasks.transformation import (
     convert_column_values_to_numeric as convert_column_values_to_numeric,
 )
@@ -791,6 +792,51 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    add_pressure_factor = (
+        task(assign_value)
+        .validate()
+        .set_task_instance_id("add_pressure_factor")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=extract_pressure,
+            column_name="kpa_to_mmhg",
+            value=7.50062,
+            **(params.get("add_pressure_factor") or {}),
+        )
+        .call()
+    )
+
+    convert_pressure_mmhg = (
+        task(apply_arithmetic_operation_over_rows_1)
+        .validate()
+        .set_task_instance_id("convert_pressure_mmhg")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=add_pressure_factor,
+            columns=["atmospheric_pressure", "kpa_to_mmhg"],
+            operation="multiply",
+            output_column="atmospheric_pressure",
+            **(params.get("convert_pressure_mmhg") or {}),
+        )
+        .call()
+    )
+
     extract_date = (
         task(extract_column_as_type)
         .validate()
@@ -805,7 +851,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            df=extract_pressure,
+            df=convert_pressure_mmhg,
             column_name="fixtime",
             output_type="date",
             output_column_name="date",

@@ -75,6 +75,20 @@
       "type": "object",
       "title": "Connect to EarthRanger"
     },
+    "add_pressure_factor": {
+      "additionalProperties": false,
+      "properties": {
+        "noop_if_column_exists": {
+          "default": false,
+          "title": "Noop If Column Exists",
+          "type": "boolean",
+          "description": "If set to true and column_name exists on df, do nothing"
+        }
+      },
+      "required": [],
+      "type": "object",
+      "title": "Add kPa to mmHg conversion factor"
+    },
     "Map Zoom & Extent": {
       "type": "object",
       "description": "Calculate the geographic extent of the movement tracks and determine an appropriate zoom level and center point for the map. This ensures that all tracks are visible and well-framed when the map is rendered.",
@@ -160,6 +174,7 @@
       "workflow_details",
       "time_range",
       "er_client_name",
+      "add_pressure_factor",
       "Map Zoom & Extent"
     ]
   },

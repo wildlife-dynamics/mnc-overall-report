@@ -57,6 +57,7 @@ from ecoscope.platform.tasks.skip import never as never
 from ecoscope.platform.tasks.transformation import (
     add_temporal_index as add_temporal_index,
 )
+from ecoscope.platform.tasks.transformation import assign_value as assign_value
 from ecoscope.platform.tasks.transformation import (
     extract_column_as_type as extract_column_as_type,
 )
@@ -65,6 +66,9 @@ from ecoscope.platform.tasks.transformation import (
 )
 from ecoscope.platform.tasks.transformation import map_columns as map_columns
 from ecoscope_workflows_ext_custom.tasks.io import html_to_png as html_to_png
+from ecoscope_workflows_ext_mnc.tasks.aggregation import (
+    apply_arithmetic_operation_over_rows as apply_arithmetic_operation_over_rows_1,
+)
 
 get_events = create_func_magicmock(  # 🧪
     anchor="ecoscope.platform.tasks.io",  # 🧪
@@ -147,9 +151,6 @@ from ecoscope_workflows_ext_custom.tasks.transformation import (
 )
 from ecoscope_workflows_ext_custom.tasks.transformation import (
     format_text_column as format_text_column,
-)
-from ecoscope_workflows_ext_mnc.tasks.aggregation import (
-    apply_arithmetic_operation_over_rows as apply_arithmetic_operation_over_rows_1,
 )
 from ecoscope_workflows_ext_mnc.tasks.transformation import (
     fill_missing_values as fill_missing_values,
@@ -897,6 +898,51 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
         .call()
     )
 
+    add_pressure_factor = (
+        task(assign_value)
+        .validate()
+        .set_task_instance_id("add_pressure_factor")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=extract_pressure,
+            column_name="kpa_to_mmhg",
+            value=7.50062,
+            **(params.get("add_pressure_factor") or {}),
+        )
+        .call()
+    )
+
+    convert_pressure_mmhg = (
+        task(apply_arithmetic_operation_over_rows_1)
+        .validate()
+        .set_task_instance_id("convert_pressure_mmhg")
+        .handle_errors()
+        .with_tracing()
+        .skipif(
+            conditions=[
+                any_is_empty_df,
+                any_dependency_skipped,
+            ],
+            unpack_depth=1,
+        )
+        .partial(
+            df=add_pressure_factor,
+            columns=["atmospheric_pressure", "kpa_to_mmhg"],
+            operation="multiply",
+            output_column="atmospheric_pressure",
+            **(params.get("convert_pressure_mmhg") or {}),
+        )
+        .call()
+    )
+
     extract_date = (
         task(extract_column_as_type)
         .validate()
@@ -911,7 +957,7 @@ def main(params: dict[str, Any], validate_params_schema: bool = True):
             unpack_depth=1,
         )
         .partial(
-            df=extract_pressure,
+            df=convert_pressure_mmhg,
             column_name="fixtime",
             output_type="date",
             output_column_name="date",
